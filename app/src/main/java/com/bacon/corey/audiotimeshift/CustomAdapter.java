@@ -30,6 +30,7 @@ public class CustomAdapter extends ArrayAdapter {
         TextView date = (TextView) rowView.findViewById(R.id.date);
         TextView length = (TextView) rowView.findViewById(R.id.length);
 
+
         return super.getView(position, convertView, parent);
     }
 }
