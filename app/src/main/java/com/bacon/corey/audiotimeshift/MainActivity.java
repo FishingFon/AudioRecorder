@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,7 +24,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        vAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS);
         vPager = (ViewPager) findViewById(R.id.viewPager);
         vPager.setAdapter(vAdapter);
 
@@ -88,34 +86,6 @@ public class MainActivity extends FragmentActivity {
         Intent intent = new Intent(this, Record.class);
         stopService(intent);
     }
-
-    public static class ViewPagerAdapter extends FragmentPagerAdapter {
-        public ViewPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public int getCount() {
-            return ITEMS;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                case 0:
-                    return TestFragment.newInstance(position);
-                case 1:
-                    return FilesListFragment.newInstance(position);
-                case 2:
-                    return RecordOptionsFragment.newInstance(position);
-
-                default:
-                    return TestFragment.newInstance(position);
-            }
-
-        }
-    }
-
 
 
 }
