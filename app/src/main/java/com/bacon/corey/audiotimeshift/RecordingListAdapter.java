@@ -24,6 +24,7 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
         this.layoutResourceId = layoutResourceId;
     }
 
+    //public void addItems()
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
@@ -37,9 +38,9 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
             title = (TextView) row.findViewById(R.id.title);
             date = (TextView) row.findViewById(R.id.date);
             length = (TextView) row.findViewById(R.id.length);
-            date.setText(recordings.get(position).getDateString(position));
-            title.setText(recordings.get(position).getTitleString(position));
-            length.setText(recordings.get(position).getLengthString(position));
+            date.setText(recordings.get(position).getDateString());
+            title.setText(recordings.get(position).getTitleString());
+            length.setText(recordings.get(position).getSizeString());
 
         }
 

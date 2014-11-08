@@ -3,6 +3,8 @@ package com.bacon.corey.audiotimeshift;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
@@ -17,7 +19,7 @@ import java.util.List;
 
 public class MainActivity extends FragmentActivity {
     static final int ITEMS = 3;
-    ViewPagerAdapter vAdapter;
+    PagerAdapter vAdapter;
     ViewPager vPager;
     List<File> files = new ArrayList<File>();
 
@@ -31,11 +33,29 @@ public class MainActivity extends FragmentActivity {
         vPager = (ViewPager) findViewById(R.id.viewPager);
         vPager.setAdapter(vAdapter);
 
-        //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+        vPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Log.v("page selected", "page selected");
+                sendMessage();
+            }
+
+            //TODO add action bar color changing...
+            /*
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
 
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+                if(position >= vAdapter.getCount()-1){
+                    return;
+                }
 
 
+            }  */
+
+        });
     }
 
     @Override
@@ -78,5 +98,10 @@ public class MainActivity extends FragmentActivity {
         stopService(intent);
     }
 
-
+    public void sendMessage(){
+        Log.v("broadcast sender", "message");
+        Intent intent = new Intent(Constants.UPDATE_FILE_DATASET);
+        intent.putExtra("message","refresh_data_set");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
 }
