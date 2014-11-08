@@ -26,7 +26,7 @@ public class PlayService extends IntentService {
 
         if(intent.getIntExtra("action", Constants.PLAY) == Constants.PLAY){
             Log.v("playservice", "play called");
-            play(AudioFormat.CHANNEL_OUT_MONO, 44100, AudioFormat.ENCODING_PCM_16BIT, "Record.pcm");
+            play(AudioFormat.CHANNEL_OUT_MONO, 44100, AudioFormat.ENCODING_PCM_16BIT, "Recording.pcm");
         }
         else if(intent.getIntExtra("action", Constants.PLAY) == Constants.STOP) {
             stop();
@@ -40,7 +40,7 @@ public class PlayService extends IntentService {
 
     public void play(int CHANNEL_OUT_MODE, int frequency, int ENCODING_FORMAT, String fileName) {
 
-        File file = new File(Environment.getExternalStorageDirectory() + File.separator + fileName);
+        File file = new File(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY + File.separator + fileName);
         int musicLength = (int)(file.length()/2);
 
         audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,

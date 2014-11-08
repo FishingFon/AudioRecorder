@@ -5,7 +5,7 @@
     tools:context=".MainActivity$PlaceholderFragment"
     android:id="@+id/relativeLayout">
     <ListView
-        android:id="@+id/listView"
+        android:id="@+id/recordingListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

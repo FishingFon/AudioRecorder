@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class Record extends IntentService {
-
+    public File directory;
     AudioRecord audioRecord;
     public Record() {
         super("Record");
@@ -35,7 +35,17 @@ public class Record extends IntentService {
         int frequency = 44100;
         int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;
         int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
-        File file = new File(Environment.getExternalStorageDirectory() + File.separator + "Record.pcm");
+        File file;
+
+        directory = new File(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+        if (directory.isDirectory()) {
+            file = new File(Environment.getExternalStorageDirectory() + File.separator + "TimeShiftRecorder" + File.separator + "Recording.pcm");
+        }
+        else{
+            directory.mkdir();
+            file = new File(Environment.getExternalStorageDirectory() + File.separator + "TimeShiftRecorder" + File.separator + "Recording.pcm");
+
+        }
 
 // Delete any previous recording.
         if (file.exists())

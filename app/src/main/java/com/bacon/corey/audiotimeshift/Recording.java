@@ -15,6 +15,18 @@ public class Recording {
         this.date = date;
     }
 
+    public String getTitleString(int position){
+        return recording.getName();
+    }
+    public String getDateString(int position){
+        return date.toString();
+    }
+    public String getLengthString(int position){
+        return Integer.toString(fileLength);
+    }
+    public String getSizeString(int position){
+        return Integer.toString(fileSize);
+    }
 
 }
 
