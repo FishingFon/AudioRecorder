@@ -27,7 +27,7 @@
         </activity>
 
         <service
-            android:name="com.bacon.corey.audiotimeshift.Record"
+            android:name=".RecordService"
             android:exported="false" >
         </service>
 

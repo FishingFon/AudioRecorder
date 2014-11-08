@@ -69,12 +69,12 @@ public class MainActivity extends FragmentActivity {
 
         Log.v("Record", "OnCreate called");
 
-        Intent intent = new Intent(this, Record.class);
+        Intent intent = new Intent(this, RecordService.class);
         startService(intent);
     }
     public void stop(View view){
         Toast.makeText(this, "stop", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, Record.class);
+        Intent intent = new Intent(this, RecordService.class);
         stopService(intent);
     }
 

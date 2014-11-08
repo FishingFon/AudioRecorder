@@ -15,10 +15,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class Record extends IntentService {
+public class RecordService extends IntentService {
     public File directory;
     AudioRecord audioRecord;
-    public Record() {
+    public RecordService() {
         super("Record");
     }
 
