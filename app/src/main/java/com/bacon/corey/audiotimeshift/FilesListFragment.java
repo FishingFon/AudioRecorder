@@ -125,9 +125,11 @@ public class FilesListFragment extends Fragment{
                 if(file.isFile() && !files.contains(file)){
                     files.add(file);
                 }
+                /*
                 else if(file.isDirectory()){
-                    //listf(file.getAbsoluteFile(), false);
+                    files(file.getAbsoluteFile(), false);
                 }
+                */
             }
             updateRecordingsList();
         }
