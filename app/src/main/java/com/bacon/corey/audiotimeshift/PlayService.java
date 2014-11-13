@@ -26,7 +26,7 @@ public class PlayService extends IntentService {
 
         if(intent.getIntExtra("action", Constants.PLAY) == Constants.PLAY){
             Log.v("playservice", "play called");
-            play(AudioFormat.CHANNEL_OUT_MONO, 44100, AudioFormat.ENCODING_PCM_16BIT, "Recording.pcm");
+            play(AudioFormat.CHANNEL_OUT_MONO, 44100, AudioFormat.ENCODING_PCM_16BIT, "testRec" + ".wav");
         }
         else if(intent.getIntExtra("action", Constants.PLAY) == Constants.STOP) {
             stop();
@@ -49,7 +49,6 @@ public class PlayService extends IntentService {
                 ENCODING_FORMAT,
                 AudioTrack.getMinBufferSize(frequency, CHANNEL_OUT_MODE, ENCODING_FORMAT),
                 AudioTrack.MODE_STREAM);
-
         try {
 
             InputStream bis = new BufferedInputStream(new FileInputStream(file));

@@ -2,6 +2,7 @@ package com.bacon.corey.audiotimeshift;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
@@ -15,7 +16,6 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class MainActivity extends FragmentActivity {
     static final int ITEMS = 3;
@@ -32,6 +32,9 @@ public class MainActivity extends FragmentActivity {
         vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS);
         vPager = (ViewPager) findViewById(R.id.viewPager);
         vPager.setAdapter(vAdapter);
+
+
+        // Fab
 
         vPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
             @Override
@@ -84,18 +87,26 @@ public class MainActivity extends FragmentActivity {
 
 
     }
+    ExtAudioRecorder test;
     public void record(View view){
         Toast.makeText(this, "record", Toast.LENGTH_SHORT).show();
+        test = ExtAudioRecorder.getInstanse(false);
+        test.setOutputFile(Environment.getExternalStorageDirectory() + File.separator + "TimeShiftRecorder" + File.separator + "testRecording" + ".wav");
+        test.prepare();
+        test.start();
+        Log.v("Record", "record called");
 
-        Log.v("Record", "OnCreate called");
+        //Intent intent = new Intent(this, RecordService.class);
+        //startService(intent);
 
-        Intent intent = new Intent(this, RecordService.class);
-        startService(intent);
     }
     public void stop(View view){
         Toast.makeText(this, "stop", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, RecordService.class);
-        stopService(intent);
+        //Intent intent = new Intent(this, RecordService.class);
+        //stopService(intent);
+        test.stop();
+        test = null;
+
     }
 
     public void sendMessage(){

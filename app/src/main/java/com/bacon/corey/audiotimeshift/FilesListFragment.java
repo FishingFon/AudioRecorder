@@ -116,22 +116,25 @@ public class FilesListFragment extends Fragment{
 
         }
 
-        public void getFiles(String directoryName){
+        public void getFiles(String directoryName) {
             File directory = new File(directoryName);
             Log.v("FilesListFragment", "getFiles();");
-            File[] fileList = directory.listFiles();
+            if (directory.exists()) {
+                File[] fileList = directory.listFiles();
 
-            for(File file: fileList){
-                if(file.isFile() && !files.contains(file)){
-                    files.add(file);
-                }
+                    for (File file : fileList) {
+                        if (file.isFile() && !files.contains(file)) {
+                            files.add(file);
+                        }
                 /*
                 else if(file.isDirectory()){
                     files(file.getAbsoluteFile(), false);
                 }
                 */
+                    }
+                    updateRecordingsList();
+
             }
-            updateRecordingsList();
         }
 
         public void updateRecordingsList(){
