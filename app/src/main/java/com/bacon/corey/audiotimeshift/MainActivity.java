@@ -23,18 +23,26 @@ public class MainActivity extends FragmentActivity {
     ViewPager vPager;
     List<File> files = new ArrayList<File>();
 
+    FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
+        fab = (FloatingActionButton) findViewById(R.id.fabbutton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent recordActivityIntent = new Intent(v.getContext(), RecordActivity.class);
+                startActivity(recordActivityIntent);
+            }
+        });
         vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS);
         vPager = (ViewPager) findViewById(R.id.viewPager);
         vPager.setAdapter(vAdapter);
 
-
-        // Fab
 
         vPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
             @Override
@@ -115,4 +123,9 @@ public class MainActivity extends FragmentActivity {
         intent.putExtra("message","refresh_data_set");
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
+
+    public FloatingActionButton getFab() {
+        return fab;
+    }
+
 }

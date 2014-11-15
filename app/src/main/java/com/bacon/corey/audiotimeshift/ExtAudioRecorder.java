@@ -118,7 +118,7 @@ public class ExtAudioRecorder
     {
         public void onPeriodicNotification(AudioRecord recorder)
         {
-            Thread test = new Thread(new Runnable() {
+            Thread recordThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
 
@@ -157,7 +157,7 @@ public class ExtAudioRecorder
             }
                 }
             });
-            test.start();
+            recordThread.start();
         }
 
         public void onMarkerReached(AudioRecord recorder)

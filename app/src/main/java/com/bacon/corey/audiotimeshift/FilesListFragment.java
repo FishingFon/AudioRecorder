@@ -1,6 +1,7 @@
 package com.bacon.corey.audiotimeshift;
 
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +16,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +34,9 @@ public class FilesListFragment extends Fragment{
     int mNum;
     FileObserver fObserver;
     UpdateDataSet updateDataSet;
-
+    ListView listView;
+    FloatingActionButton fab;
+    MainActivity mainActivity;
     // Methods
     static FilesListFragment newInstance(int num) {
         FilesListFragment f = new FilesListFragment();
@@ -40,6 +47,12 @@ public class FilesListFragment extends Fragment{
         f.setArguments(args);
 
         return f;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mainActivity = (MainActivity)activity;
     }
 
     @Override
@@ -64,6 +77,8 @@ public class FilesListFragment extends Fragment{
 
     }
 
+
+
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -79,12 +94,38 @@ public class FilesListFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_files, container, false);
-        ListView rListView = (ListView) v.findViewById(R.id.recordingListView);
+        listView = (ListView) v.findViewById(R.id.recordingListView);
         rAdapter = new RecordingListAdapter(getActivity(), R.layout.row_layout, recordingsList);
-        rListView.setAdapter(rAdapter);
+        listView.setAdapter(rAdapter);
         rAdapter.notifyDataSetChanged();
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getActivity(), "item clicked: " + position, Toast.LENGTH_SHORT).show();
+
+                Intent playIntent = new Intent(getActivity(), PlayService.class);
+                //playIntent.putExtra("action", Constants.PLAY);
+                playIntent.putExtra("playItemPosition", position);
+                playIntent.putExtra("playItem", recordingsList.get(position));
+
+                getActivity().startService(playIntent);
+            }
+        });
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                fab = mainActivity.getFab();
+                fab.listenTo(view);
+            }
+        });
         return v;
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -93,11 +134,10 @@ public class FilesListFragment extends Fragment{
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroyView() {
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }
-
 
 
     public class UpdateDataSet extends AsyncTask<List, String, List> {
@@ -159,4 +199,7 @@ public class FilesListFragment extends Fragment{
         }
     }
 
+    public ListView getListView() {
+        return listView;
+    }
 }

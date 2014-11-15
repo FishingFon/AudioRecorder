@@ -1,10 +1,11 @@
 package com.bacon.corey.audiotimeshift;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
 
-public class Recording implements Comparable<Recording> {
+public class Recording implements Comparable<Recording>, Serializable{
     private File recording;
     private Date date;
     private String fileFormat;
@@ -41,6 +42,9 @@ public class Recording implements Comparable<Recording> {
     }
     public File getFile(){
         return recording;
+    }
+    public String getFilePathString(){
+        return recording.getPath();
     }
 
     public static Comparator<Recording> recDateComp = new Comparator<Recording>() {

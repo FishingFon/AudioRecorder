@@ -2,9 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.bacon.corey.audiotimeshift" >
 
-    <uses-sdk android:minSdkVersion="11"
-        android:targetSdkVersion="21"
-        android:maxSdkVersion="21" />
+    <uses-sdk
+        android:maxSdkVersion="21"
+        android:minSdkVersion="11"
+        android:targetSdkVersion="21" />
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -26,16 +27,28 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".RecordService"
-            android:exported="false" >
-        </service>
-
 
         <service
             android:name="com.bacon.corey.audiotimeshift.PlayService"
             android:exported="false" >
         </service>
+
+        <activity
+            android:name="com.bacon.corey.audiotimeshift.PlayActivity"
+            android:label="@string/title_activity_play"
+            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bacon.corey.audiotimeshift.MainActivity" />
+        </activity>
+        <activity
+            android:name=".RecordActivity"
+            android:label="@string/title_activity_record"
+            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bacon.corey.audiotimeshift.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
