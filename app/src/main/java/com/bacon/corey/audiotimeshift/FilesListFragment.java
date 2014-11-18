@@ -6,41 +6,53 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationSet;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class FilesListFragment extends Fragment{
+import libs.SlidingUpPanelLayout;
+
+public class FilesListFragment extends ColorFragment{
+    public static int FRAGMENT_COLOR;
     List<Recording> recordingsList = new ArrayList<Recording>();
     List<File> files = new ArrayList<File>();
     RecordingListAdapter rAdapter;
     int mNum;
+    ColorDrawable actionBarBackground;
     FileObserver fObserver;
-    UpdateDataSet updateDataSet;
     ListView listView;
-    FloatingActionButton fab;
+    FloatingActionsMenu fabMenu;
     MainActivity mainActivity;
-    // Methods
-    static FilesListFragment newInstance(int num) {
-        FilesListFragment f = new FilesListFragment();
+    SlidingUpPanelLayout slidingUpPanelLayout;
+    int beforeScrollPosition;
 
+    // Methods
+    public static FilesListFragment newInstance(int num, Context context) {
+
+        FRAGMENT_COLOR = context.getResources().getColor(R.color.c5);
+
+        FilesListFragment f = new FilesListFragment();
         // Supply num input as an argument.
         Bundle args = new Bundle();
         args.putInt("num", num);
@@ -87,6 +99,7 @@ public class FilesListFragment extends Fragment{
             //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
             new UpdateDataSet().execute();
 
+
         }
     };
 
@@ -94,23 +107,90 @@ public class FilesListFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_files, container, false);
+
+
+        //fab = mainActivity.getFab();
+
         listView = (ListView) v.findViewById(R.id.recordingListView);
         rAdapter = new RecordingListAdapter(getActivity(), R.layout.row_layout, recordingsList);
         listView.setAdapter(rAdapter);
         rAdapter.notifyDataSetChanged();
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            }
+        });
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "item clicked: " + position, Toast.LENGTH_SHORT).show();
+                final int color = rAdapter.getRowColor(position);
+                int pos = position;
+                final int actionBarColor = getColor();
+                actionBarBackground = new ColorDrawable();
 
-                Intent playIntent = new Intent(getActivity(), PlayService.class);
+
+
+                getActivity().getActionBar().setBackgroundDrawable(actionBarBackground);
+                slidingUpPanelLayout = (SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
+               // slidingUpPanelLayout.setPanelHeight(0);
+                beforeScrollPosition = -listView.getChildAt(0).getTop() + listView.getFirstVisiblePosition() * listView.getChildAt(0).getHeight();
+
+                listView.smoothScrollToPositionFromTop(position, 0, 200);
+                slidingUpPanelLayout.showPanel();
+                slidingUpPanelLayout.expandPanel();
+
+                slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+
+                    @Override
+                    public void onPanelCollapsed(View panel) {
+                        //listView.smoothScrollBy(beforeScrollPosition, 100);
+                        //  fab.hide(false);
+
+                    }
+
+                    @Override
+                    public void onPanelSlide(View panel, float slideOffset) {
+                        final int blended = blendColors(color, actionBarColor, slideOffset);
+
+                        actionBarBackground.setColor(blended);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            getActivity().getWindow().setStatusBarColor(MainActivity.darkenColorRGB(blended));
+
+                        }
+
+                    }
+
+
+                    @Override
+                    public void onPanelExpanded(View panel) {
+                        //fab.hide(true);
+                    }
+
+                    @Override
+                    public void onPanelAnchored(View panel) {
+
+                    }
+
+                    @Override
+                    public void onPanelHidden(View panel) {
+
+                    }
+                });
+
+
+                //Intent playIntent = new Intent(getActivity(), PlayService.class);
                 //playIntent.putExtra("action", Constants.PLAY);
-                playIntent.putExtra("playItemPosition", position);
-                playIntent.putExtra("playItem", recordingsList.get(position));
+                //playIntent.putExtra("playItemPosition", position);
+                //playIntent.putExtra("playItem", recordingsList.get(position));
 
-                getActivity().startService(playIntent);
+                //getActivity().startService(playIntent);
             }
         });
+
+
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -119,8 +199,8 @@ public class FilesListFragment extends Fragment{
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                fab = mainActivity.getFab();
-                fab.listenTo(view);
+
+                //fab.listenTo(view);
             }
         });
         return v;
@@ -202,4 +282,26 @@ public class FilesListFragment extends Fragment{
     public ListView getListView() {
         return listView;
     }
+
+    @Override
+    public int getColor() {
+        return FRAGMENT_COLOR;
+    }
+    public static int blendColors(int from, int to, float ratio) {
+        int f = from;
+        int t = to;
+
+        final float inverseRation = 1f - ratio;
+        final float r = Color.red(from) * ratio + Color.red(to) * inverseRation;
+        final float g = Color.green(from) * ratio + Color.green(to) * inverseRation;
+        final float b = Color.blue(from) * ratio + Color.blue(to) * inverseRation;
+
+        return Color.rgb((int) r, (int) g, (int) b);
+    }
+public void hideFabMenu(FloatingActionsMenu fabMenu){
+    TranslateAnimation anim = new TranslateAnimation(0, -100, 100, 100);
+    anim.setDuration(1000);
+    fabMenu.startActionMode((android.view.ActionMode.Callback) anim);
+}
+
 }

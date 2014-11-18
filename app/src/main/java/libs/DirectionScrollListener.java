@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bacon.corey.audiotimeshift;
+package libs;
 
 import android.view.View;
 import android.widget.AbsListView;
@@ -25,12 +25,12 @@ import android.widget.AbsListView;
 class DirectionScrollListener implements AbsListView.OnScrollListener {
 
     private static final int DIRECTION_CHANGE_THRESHOLD = 1;
-    private final FloatingActionButton mFloatingActionButton;
+    private final FloatingActionButtonOld mFloatingActionButton;
     private int mPrevPosition;
     private int mPrevTop;
     private boolean mUpdated;
 
-    DirectionScrollListener(FloatingActionButton floatingActionButton) {
+    DirectionScrollListener(FloatingActionButtonOld floatingActionButton) {
         mFloatingActionButton = floatingActionButton;
     }
 

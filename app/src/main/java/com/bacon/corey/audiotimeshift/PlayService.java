@@ -87,6 +87,7 @@ public class PlayService extends IntentService {
 
             InputStream bis = new BufferedInputStream(new FileInputStream(file));
             DataInputStream dis = new DataInputStream(bis);
+
             int bite = 44;
             int remainder = musicLength % bite;
             short[] music = new short[bite];

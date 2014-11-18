@@ -1,23 +1,25 @@
 package com.bacon.corey.audiotimeshift;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class TestFragment extends Fragment{
-
+public class TestFragment extends ColorFragment{
         int mNum;
+    public static int FRAGMENT_COLOR;
 
         /**
          * Create a new instance of CountingFragment, providing "num"
          * as an argument.
          */
-        static TestFragment newInstance(int num) {
-            TestFragment f = new TestFragment();
 
+        public static TestFragment newInstance(int num, Context context) {
+            TestFragment f = new TestFragment();
+            FRAGMENT_COLOR = context.getResources().getColor(R.color.c10);
             // Supply num input as an argument.
             Bundle args = new Bundle();
             args.putInt("num", num);
@@ -52,5 +54,9 @@ public class TestFragment extends Fragment{
 
         }
 
+    @Override
+    public int getColor() {
+        return FRAGMENT_COLOR;
     }
+}
 

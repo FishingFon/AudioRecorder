@@ -5,12 +5,12 @@
     android:padding="4dip"
     android:gravity="center_horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <fragment android:name="com.bacon.corey.audiotimeshift.RecordFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="2"
         android:id="@+id/fragment_record" />
 
 </LinearLayout>

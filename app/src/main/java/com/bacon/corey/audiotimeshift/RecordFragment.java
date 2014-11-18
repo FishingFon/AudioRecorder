@@ -131,6 +131,7 @@ public class RecordFragment extends Fragment {
                 OutputStream os = new FileOutputStream(file);
                 BufferedOutputStream bos = new BufferedOutputStream(os);
                 DataOutputStream dos = new DataOutputStream(bos);
+
                 Log.v("Record", "Log 2");
 // Create a new AudioRecord object to record the audio.
                 int bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfiguration, audioEncoding)*2;

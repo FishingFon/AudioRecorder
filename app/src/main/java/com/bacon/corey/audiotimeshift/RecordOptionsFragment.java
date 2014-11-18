@@ -1,23 +1,28 @@
 package com.bacon.corey.audiotimeshift;
 
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class RecordOptionsFragment extends Fragment{
-
+public class RecordOptionsFragment extends ColorFragment{
         int mNum;
+        public static int FRAGMENT_COLOR;
 
-        /**
+    /**
          * Create a new instance of CountingFragment, providing "num"
          * as an argument.
          */
-        static RecordOptionsFragment newInstance(int num) {
-            RecordOptionsFragment f = new RecordOptionsFragment();
 
+        public static RecordOptionsFragment newInstance(int num, Context context) {
+
+            FRAGMENT_COLOR = context.getResources().getColor(R.color.c15);
+
+            RecordOptionsFragment f = new RecordOptionsFragment();
             // Supply num input as an argument.
             Bundle args = new Bundle();
             args.putInt("num", num);
@@ -53,5 +58,9 @@ public class RecordOptionsFragment extends Fragment{
 
         }
 
+    @Override
+    public int getColor() {
+        return FRAGMENT_COLOR;
+    }
     }
 
