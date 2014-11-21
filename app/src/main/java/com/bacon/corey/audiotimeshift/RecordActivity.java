@@ -7,7 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class RecordActivity extends Activity implements RecordFragment.OnFragmentInteractionListener {
+public class RecordActivity extends Activity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,8 +37,5 @@ public class RecordActivity extends Activity implements RecordFragment.OnFragmen
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
 
-    }
 }

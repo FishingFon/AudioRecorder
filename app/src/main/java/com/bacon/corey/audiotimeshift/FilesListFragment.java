@@ -13,25 +13,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationSet;
-import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import libs.SlidingUpPanelLayout;
 
 public class FilesListFragment extends ColorFragment{
     public static int FRAGMENT_COLOR;
@@ -46,18 +46,22 @@ public class FilesListFragment extends ColorFragment{
     MainActivity mainActivity;
     SlidingUpPanelLayout slidingUpPanelLayout;
     int beforeScrollPosition;
+    int defaultColor;
+    int actionBarColor;
+    int color;
+
+
 
     // Methods
     public static FilesListFragment newInstance(int num, Context context) {
 
-        FRAGMENT_COLOR = context.getResources().getColor(R.color.c5);
+        FRAGMENT_COLOR = context.getResources().getColor(R.color.c52);
 
         FilesListFragment f = new FilesListFragment();
         // Supply num input as an argument.
         Bundle args = new Bundle();
         args.putInt("num", num);
         f.setArguments(args);
-
         return f;
     }
 
@@ -71,8 +75,10 @@ public class FilesListFragment extends ColorFragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNum = getArguments() != null ? getArguments().getInt("num") : 1;
+        setHasOptionsMenu(true);
         //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
         new UpdateDataSet().execute();
+        defaultColor = -1;
 
         fObserver = new FileObserver(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY) {
             @Override
@@ -107,78 +113,65 @@ public class FilesListFragment extends ColorFragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_files, container, false);
+        actionBarBackground = mainActivity.getActionBarDrawable();
+        actionBarColor = getResources().getColor(R.color.c52);
 
 
         //fab = mainActivity.getFab();
-
+        slidingUpPanelLayout = (SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
         listView = (ListView) v.findViewById(R.id.recordingListView);
         rAdapter = new RecordingListAdapter(getActivity(), R.layout.row_layout, recordingsList);
         listView.setAdapter(rAdapter);
         rAdapter.notifyDataSetChanged();
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        // Add onclick events to fab menu buttons
+        final FloatingActionsMenu fabMenu = (FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
+
+        final AddFloatingActionButton fabMain = (AddFloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
+        fabMain.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            public void onClick(View v) {
+                boolean expanded = fabMenu.toggle();
+                if (expanded){
+                    ((MainActivity)getActivity()).replaceFragment(new RecordFragment(), R.id.slideUpPanel, false);
+                    slidingUpPanelLayout.expandPanel();
+                    defaultColor = getResources().getColor(R.color.recordDefaultColor);
+                }
+
+
             }
+        });
+        listView.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            public boolean onTouch(View v, MotionEvent event) {
+                fabMenu.collapse();
+                return false;
             }
         });
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final int color = rAdapter.getRowColor(position);
-                int pos = position;
-                final int actionBarColor = getColor();
-                actionBarBackground = new ColorDrawable();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("recording", rAdapter.getItem(position));
+                bundle.putInt("color", rAdapter.getRowColor(position));
+
+                PlayFragment mPlayFragment = new PlayFragment();
+
+                mPlayFragment.setArguments(bundle);
+                ((MainActivity)getActivity()).replaceFragment(mPlayFragment, R.id.slideUpPanel, false);
+
+                color = rAdapter.getRowColor(position);
 
 
 
-                getActivity().getActionBar().setBackgroundDrawable(actionBarBackground);
-                slidingUpPanelLayout = (SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
+                //getActivity().getActionBar().setBackgroundDrawable(actionBarBackground);
                // slidingUpPanelLayout.setPanelHeight(0);
-                beforeScrollPosition = -listView.getChildAt(0).getTop() + listView.getFirstVisiblePosition() * listView.getChildAt(0).getHeight();
+                //beforeScrollPosition = -listView.getChildAt(0).getTop() + listView.getFirstVisiblePosition() * listView.getChildAt(0).getHeight();
 
-                listView.smoothScrollToPositionFromTop(position, 0, 200);
-                slidingUpPanelLayout.showPanel();
+                //listView.smoothScrollToPositionFromTop(position, 0, 200);
+                //slidingUpPanelLayout.showPanel();
                 slidingUpPanelLayout.expandPanel();
 
-                slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
 
-                    @Override
-                    public void onPanelCollapsed(View panel) {
-                        //listView.smoothScrollBy(beforeScrollPosition, 100);
-                        //  fab.hide(false);
-
-                    }
-
-                    @Override
-                    public void onPanelSlide(View panel, float slideOffset) {
-                        final int blended = blendColors(color, actionBarColor, slideOffset);
-
-                        actionBarBackground.setColor(blended);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            getActivity().getWindow().setStatusBarColor(MainActivity.darkenColorRGB(blended));
-
-                        }
-
-                    }
-
-
-                    @Override
-                    public void onPanelExpanded(View panel) {
-                        //fab.hide(true);
-                    }
-
-                    @Override
-                    public void onPanelAnchored(View panel) {
-
-                    }
-
-                    @Override
-                    public void onPanelHidden(View panel) {
-
-                    }
-                });
 
 
                 //Intent playIntent = new Intent(getActivity(), PlayService.class);
@@ -189,7 +182,52 @@ public class FilesListFragment extends ColorFragment{
                 //getActivity().startService(playIntent);
             }
         });
+        slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            int mColor;
+            @Override
+            public void onPanelCollapsed(View panel) {
+                defaultColor = -1;
+                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
 
+
+            }
+
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+
+                if(defaultColor != -1){
+                    mColor = defaultColor;
+                }
+                else {
+                    mColor = color;
+                }
+                final int blended = blendColors(mColor, actionBarColor, slideOffset);
+                mainActivity.getDimShadowDrop().getForeground().setAlpha(Math.round(slideOffset * 140));
+                actionBarBackground.setColor(blended);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    getActivity().getWindow().setStatusBarColor(MainActivity.darkenColorRGB(blended));
+
+                }
+
+            }
+
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                //fab.hide(true);
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+
+            }
+        });
 
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -279,9 +317,6 @@ public class FilesListFragment extends ColorFragment{
         }
     }
 
-    public ListView getListView() {
-        return listView;
-    }
 
     @Override
     public int getColor() {
@@ -298,10 +333,22 @@ public class FilesListFragment extends ColorFragment{
 
         return Color.rgb((int) r, (int) g, (int) b);
     }
-public void hideFabMenu(FloatingActionsMenu fabMenu){
-    TranslateAnimation anim = new TranslateAnimation(0, -100, 100, 100);
-    anim.setDuration(1000);
-    fabMenu.startActionMode((android.view.ActionMode.Callback) anim);
-}
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id){
+            case R.id.record_options:
+                mainActivity.replaceFragment(new RecordOptionsFragment(), R.id.slideUpPanel, false);
+                defaultColor = Color.GRAY;
+                slidingUpPanelLayout.expandPanel();
+                return true;
+            default: return super.onOptionsItemSelected(item);
+
+        }
+    }
 }

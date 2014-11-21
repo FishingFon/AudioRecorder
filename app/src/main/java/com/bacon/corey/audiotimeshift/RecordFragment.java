@@ -1,6 +1,6 @@
 package com.bacon.corey.audiotimeshift;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -47,7 +47,6 @@ public class RecordFragment extends Fragment {
     int bitsPerSample = 16;
     ExtAudioRecorder extAudioRecord;
 
-    // TODO: Rename and change types and number of parameters
     public static RecordFragment newInstance() {
         RecordFragment fragment = new RecordFragment();
         Bundle args = new Bundle();
@@ -83,7 +82,7 @@ public class RecordFragment extends Fragment {
         }
         //extAudioRecord.release();
         //audioRecord.stop();
-        Log.v("Record", "onDestroy called, Record stopped");
+        Log.v("Record", "onDestroyView called, Record stopped");
     }
 
     public interface OnFragmentInteractionListener {

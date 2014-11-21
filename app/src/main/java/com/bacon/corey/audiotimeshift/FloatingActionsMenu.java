@@ -3,8 +3,11 @@ package com.bacon.corey.audiotimeshift;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -14,6 +17,7 @@ import android.os.Parcelable;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,11 +46,11 @@ public class FloatingActionsMenu extends ViewGroup {
 
   private int mButtonSpacing;
 
-  private boolean mExpanded;
+  public boolean mExpanded;
 
   private AnimatorSet mExpandAnimation = new AnimatorSet().setDuration(ANIMATION_DURATION);
   private AnimatorSet mCollapseAnimation = new AnimatorSet().setDuration(ANIMATION_DURATION);
-  private AddFloatingActionButton mAddButton;
+  public AddFloatingActionButton mAddButton;
   private RotatingDrawable mRotatingDrawable;
 
   public FloatingActionsMenu(Context context) {
@@ -115,7 +119,7 @@ public class FloatingActionsMenu extends ViewGroup {
     }
   }
 
-  private void createAddButton(Context context) {
+  private void createAddButton(final Context context) {
     mAddButton = new AddFloatingActionButton(context) {
       @Override
       void updateBackground() {
@@ -146,16 +150,20 @@ public class FloatingActionsMenu extends ViewGroup {
     };
 
     mAddButton.setId(R.id.fab_expand_menu_button);
+      /*
     mAddButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         toggle();
+
       }
     });
-
+*/
     addView(mAddButton, super.generateDefaultLayoutParams());
   }
-
+  public AddFloatingActionButton getMainActionButton(){
+      return mAddButton;
+  }
   private int getColor(@ColorRes int id) {
     return getResources().getColor(id);
   }
@@ -166,14 +174,17 @@ public class FloatingActionsMenu extends ViewGroup {
 
     int width = 0;
     int height = 0;
-
+      DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+      int px = Math.round(300 * (metrics.densityDpi / 160f));
     for (int i = 0; i < getChildCount(); i++) {
       View child = getChildAt(i);
+
+
 
       switch (mExpandDirection) {
         case EXPAND_UP:
         case EXPAND_DOWN:
-          width = Math.max(width, child.getMeasuredWidth());
+          width = Math.max(width, child.getMeasuredWidth()) ;
           height += child.getMeasuredHeight();
           break;
         case EXPAND_LEFT:
@@ -195,9 +206,9 @@ public class FloatingActionsMenu extends ViewGroup {
         width = width * 12 / 10; // for overshoot
     }
 
-    setMeasuredDimension(width, height);
+    setMeasuredDimension(width, height); // TODO
   }
-
+    int addButtonY; int childX;
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     switch (mExpandDirection) {
@@ -205,7 +216,7 @@ public class FloatingActionsMenu extends ViewGroup {
       case EXPAND_DOWN:
         boolean expandUp = mExpandDirection == EXPAND_UP;
 
-        int addButtonY = expandUp ? b - t - mAddButton.getMeasuredHeight() : 0;
+          addButtonY = expandUp ? b - t - mAddButton.getMeasuredHeight() : 0;
         mAddButton.layout(0, addButtonY, mAddButton.getMeasuredWidth(), addButtonY + mAddButton.getMeasuredHeight());
 
         int nextY = expandUp ?
@@ -217,7 +228,7 @@ public class FloatingActionsMenu extends ViewGroup {
 
           if (child == mAddButton) continue;
 
-          int childX = (mAddButton.getMeasuredWidth() - child.getMeasuredWidth()) / 2;
+          childX = (mAddButton.getMeasuredWidth() - child.getMeasuredWidth()) / 2;
           int childY = expandUp ? nextY - child.getMeasuredHeight() : nextY;
           child.layout(childX, childY, childX + child.getMeasuredWidth(), childY + child.getMeasuredHeight());
 
@@ -229,6 +240,7 @@ public class FloatingActionsMenu extends ViewGroup {
 
           LayoutParams params = (LayoutParams) child.getLayoutParams();
           params.mCollapseDir.setFloatValues(expandedTranslation, collapsedTranslation);
+
           params.mExpandDir.setFloatValues(collapsedTranslation, expandedTranslation);
           params.setAnimationsTarget(child);
 
@@ -362,19 +374,32 @@ public class FloatingActionsMenu extends ViewGroup {
     }
   }
 
-  public void toggle() {
+  public boolean toggle() {
     if (mExpanded) {
       collapse();
+        return true;
     } else {
       expand();
+        return false;
     }
   }
 
-  public void expand() {
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas); // TODO
+        Paint paint = new Paint();
+        paint.setTextSize(20);
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    public void expand() {
     if (!mExpanded) {
       mExpanded = true;
       mCollapseAnimation.cancel();
       mExpandAnimation.start();
+
+
     }
   }
 

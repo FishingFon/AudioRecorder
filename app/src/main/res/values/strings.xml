@@ -7,4 +7,16 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_play">Play</string>
     <string name="title_activity_record">Record</string>
+
+    <string-array name="sampleRates">
+        <item>8 kHz</item> <!-- 8000 Hz -->
+        <item>11 kHz</item><!-- 11025 Hz -->
+        <item>16 kHz</item><!-- 16000 Hz -->
+        <item>22 kHz</item><!-- 22050 Hz -->
+        <item>32 kHz</item><!-- 32000 Hz -->
+        <item>44 kHz</item><!-- 44100 Hz -->
+        <item>48 kHz</item><!-- 48000 Hz -->
+
+
+    </string-array>
 </resources>

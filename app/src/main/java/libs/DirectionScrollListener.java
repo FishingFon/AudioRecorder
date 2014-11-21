@@ -19,6 +19,8 @@ package libs;
 import android.view.View;
 import android.widget.AbsListView;
 
+import libs.FloatingActionButtonOld;
+
 /**
  * Created by Stéphane on 09/07/2014.
  */

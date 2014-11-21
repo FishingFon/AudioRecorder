@@ -17,13 +17,13 @@
 
 
     <!-- Material Colors - Main - 500 colors -->
-
+    <color name="c52">#1E88E5</color>
     <color name="c1">#F44336</color>
     <color name="c2">#E91E63</color>
     <color name="c3">#9C27B0</color>
     <color name="c4">#673AB7</color>
-    <color name="c5">#3F51B5</color>
-    <color name="c6">#2196F3</color>
+    <color name="c6">#3F51B5</color>
+    <color name="c5">#2196F3</color>
     <color name="c7">#03A9F4</color>
     <color name="c8">#00BCD4</color>
     <color name="c9">#009688</color>
@@ -36,6 +36,9 @@
     <color name="c17">#795548</color>
     <color name="c18">#607D8B</color>
 
+
+
+    <color name="recordDefaultColor">#F44336</color>
 
 
     <!-- end material colors -->

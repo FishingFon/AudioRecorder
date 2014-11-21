@@ -1,4 +1,4 @@
-package libs;
+package com.bacon.corey.audiotimeshift;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -20,8 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 
-import com.bacon.corey.audiotimeshift.R;
-import com.bacon.corey.audiotimeshift.ViewDragHelper;
 import com.nineoldandroids.view.animation.AnimatorProxy;
 
 public class SlidingUpPanelLayout extends ViewGroup {
@@ -31,7 +29,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
     /**
      * Default peeking out panel height
      */
-    private static final int DEFAULT_PANEL_HEIGHT = 68; // dp; normally 68
+    private static final int DEFAULT_PANEL_HEIGHT = 68; // dp;
 
     /**
      * Default anchor point height
@@ -65,7 +63,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
      * Default attributes for layout
      */
     private static final int[] DEFAULT_ATTRS = new int[] {
-        android.R.attr.gravity
+            android.R.attr.gravity
     };
 
     /**
@@ -235,7 +233,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
     }
 
     /**
-     * No-op stubs for {@link SlidingUpPanelLayout.PanelSlideListener}. If you only want to implement a subset
+     * No-op stubs for {@link PanelSlideListener}. If you only want to implement a subset
      * of the listener methods you can extend this instead of implement the full interface.
      */
     public static class SimplePanelSlideListener implements PanelSlideListener {
@@ -290,7 +288,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
 
             if (ta != null) {
                 mPanelHeight = ta.getDimensionPixelSize(R.styleable.SlidingUpPanelLayout_panelHeight, -1);
-                mShadowHeight = 0; //mShadowHeight = ta.getDimensionPixelSize(R.styleable.SlidingUpPanelLayout_shadowHeight, -1);
+                mShadowHeight = ta.getDimensionPixelSize(R.styleable.SlidingUpPanelLayout_shadowHeight, -1);
                 mParallaxOffset = ta.getDimensionPixelSize(R.styleable.SlidingUpPanelLayout_paralaxOffset, -1);
 
                 mMinFlingVelocity = ta.getInt(R.styleable.SlidingUpPanelLayout_flingVelocity, DEFAULT_MIN_FLING_VELOCITY);
@@ -650,7 +648,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
             child.measure(childWidthSpec, childHeightSpec);
 
             if (child == mSlideableView) {
-                mSlideRange = mSlideableView.getMeasuredHeight(); // normally has  + mPanelHeight;, i removed it so that the panel filled full screen.
+                mSlideRange = mSlideableView.getMeasuredHeight() - mPanelHeight;
             }
         }
 
@@ -661,23 +659,24 @@ public class SlidingUpPanelLayout extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         final int paddingLeft = getPaddingLeft();
         final int paddingTop = getPaddingTop();
+
         final int childCount = getChildCount();
 
         if (mFirstLayout) {
             switch (mSlideState) {
-            case EXPANDED:
-                mSlideOffset = 1.0f;
-                break;
-            case ANCHORED:
-                mSlideOffset = mAnchorPoint;
-                break;
-            case HIDDEN:
-                int newTop = computePanelTopPosition(0.0f) + (mIsSlidingUp ? +mPanelHeight : -mPanelHeight);
-                mSlideOffset = computeSlideOffset(newTop);
-                break;
-            default:
-                mSlideOffset = 0.f;
-                break;
+                case EXPANDED:
+                    mSlideOffset = 1.0f;
+                    break;
+                case ANCHORED:
+                    mSlideOffset = mAnchorPoint;
+                    break;
+                case HIDDEN:
+                    int newTop = computePanelTopPosition(0.0f) + (mIsSlidingUp ? +mPanelHeight : -mPanelHeight);
+                    mSlideOffset = computeSlideOffset(newTop);
+                    break;
+                default:
+                    mSlideOffset = 0.f;
+                    break;
             }
         }
 
@@ -998,15 +997,15 @@ public class SlidingUpPanelLayout extends ViewGroup {
         if (isSlidingEnabled() && mSlideableView != child) {
             // Clip against the slider; no sense drawing what will immediately be covered,
             // Unless the panel is set to overlay content
-                canvas.getClipBounds(mTmpRect);
-                if (!mOverlayContent) {
-                    if (mIsSlidingUp) {
-                        mTmpRect.bottom = Math.min(mTmpRect.bottom, mSlideableView.getTop());
-                    } else {
-                        mTmpRect.top = Math.max(mTmpRect.top, mSlideableView.getBottom());
-                    }
+            canvas.getClipBounds(mTmpRect);
+            if (!mOverlayContent) {
+                if (mIsSlidingUp) {
+                    mTmpRect.bottom = Math.min(mTmpRect.bottom, mSlideableView.getTop());
+                } else {
+                    mTmpRect.top = Math.max(mTmpRect.top, mSlideableView.getBottom());
                 }
-                canvas.clipRect(mTmpRect);
+            }
+            canvas.clipRect(mTmpRect);
 
             if (mCoveredFadeColor != 0 && mSlideOffset > 0) {
                 final int baseAlpha = (mCoveredFadeColor & 0xff000000) >>> 24;
@@ -1253,9 +1252,9 @@ public class SlidingUpPanelLayout extends ViewGroup {
         }
     }
 
-    public static class LayoutParams extends MarginLayoutParams {
+    public static class LayoutParams extends ViewGroup.MarginLayoutParams {
         private static final int[] ATTRS = new int[] {
-            android.R.attr.layout_weight
+                android.R.attr.layout_weight
         };
 
         public LayoutParams() {
@@ -1266,7 +1265,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
             super(width, height);
         }
 
-        public LayoutParams(ViewGroup.LayoutParams source) {
+        public LayoutParams(android.view.ViewGroup.LayoutParams source) {
             super(source);
         }
 
@@ -1309,17 +1308,17 @@ public class SlidingUpPanelLayout extends ViewGroup {
             out.writeString(mSlideState.toString());
         }
 
-        public static final Creator<SavedState> CREATOR =
-                new Creator<SavedState>() {
-            @Override
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
-            }
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+                    @Override
+                    public SavedState createFromParcel(Parcel in) {
+                        return new SavedState(in);
+                    }
 
-            @Override
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
+                    @Override
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                };
     }
 }

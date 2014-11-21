@@ -1,13 +1,25 @@
 package com.bacon.corey.audiotimeshift;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+
+import java.util.zip.Inflater;
+
+import libs.CircleButton;
 
 
 /**
@@ -19,6 +31,9 @@ import android.widget.RelativeLayout;
  * create an instance of this fragment.
  */
 public class PlayFragment extends Fragment {
+    Bundle bundle;
+    Recording recording;
+    Boolean clicked = new Boolean(false);
 
     private OnFragmentInteractionListener mListener;
 
@@ -36,6 +51,11 @@ public class PlayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        bundle = getArguments();
+        if(bundle != null) {
+
+            recording = (Recording) bundle.getSerializable("recording");
+        }
 
     }
 
@@ -43,8 +63,104 @@ public class PlayFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_play, container, false);
+        //TODO add color settings to buttons
+        View view = inflater.inflate(R.layout.fragment_play, container, false);
+        final CircleButton playButton = (CircleButton) view.findViewById(R.id.playButton);
+        final CircleButton backButton = (CircleButton) view.findViewById(R.id.previousButton);
+        final CircleButton forwardButton = (CircleButton) view.findViewById(R.id.nextButton);
+        final CircleButton deleteButton = (CircleButton) view.findViewById(R.id.deleteButton);
+        final CircleButton waveToggleButton = (CircleButton) view.findViewById(R.id.waveToggleButton);
+        final int color = bundle.getInt("color");
+        if(bundle != null) {
+            playButton.setDefaultColor(color);
+        }
+        backButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
+        forwardButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
+        waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
+        deleteButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
+
+        final AlphaAnimation start = new AlphaAnimation(1.0f, 0.0f);
+        start.setDuration(200);
+
+        final AlphaAnimation end = new AlphaAnimation(0.0f, 1.0f);
+        end.setDuration(200);
+
+        waveToggleButton.setTag(clicked);
+
+        waveToggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                start.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+                   @Override
+                    public void onAnimationEnd(Animation animation) {
+                        if((Boolean)waveToggleButton.getTag() == false) {
+                            waveToggleButton.setImageResource(R.drawable.ic_wave_toggle_two);
+                            waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+                            waveToggleButton.setTag(new Boolean(true));
+                        }
+                        else if((Boolean)waveToggleButton.getTag() == true) {
+                            waveToggleButton.setImageResource(R.drawable.ic_wave_toggle_one);
+                            waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+                            waveToggleButton.setTag(new Boolean(false));
+                        }
+                        waveToggleButton.startAnimation(end);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                   }
+                });
+              waveToggleButton.startAnimation(start);
+
+            }
+        });
+
+        playButton.setTag(clicked);
+
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                start.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        if((Boolean)playButton.getTag() == false) {
+                            playButton.setImageResource(R.drawable.ic_pause);
+                            playButton.setTag(new Boolean(true));
+                        }
+                        else if((Boolean)playButton.getTag() == true) {
+                            playButton.setImageResource(R.drawable.ic_play);
+                            playButton.setTag(new Boolean(false));
+                        }
+                        playButton.startAnimation(end);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+
+
+                playButton.startAnimation(start);
+
+            }
+        });
+
+
+
+        return view;
     }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {

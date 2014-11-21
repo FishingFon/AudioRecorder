@@ -1,12 +1,15 @@
 package com.bacon.corey.audiotimeshift;
 
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
@@ -14,56 +17,61 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import libs.SlidingUpPanelLayout;
-
 public class MainActivity extends FragmentActivity implements PlayFragment.OnFragmentInteractionListener {
-    static final int ITEMS = 3;
-    ViewPagerAdapter vAdapter;
-    ViewPager vPager;
-    List<File> files = new ArrayList<File>();
+    //ViewPagerAdapter vAdapter;
+    //ViewPager vPager;
     //FloatingActionButton fab;
-    Boolean fabSecVisible = false;
     SlidingUpPanelLayout slidingUpPanelLayout;
     ColorDrawable actionBarBackground;
-    FloatingActionButton fab;
-
+    FrameLayout dimShadowDrop;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        replaceFragment(new FilesListFragment(), R.id.mainLayoutContainer, false);
+
         //fabSec.hide(true);
          //fab = (FloatingActionButton)findViewById(R.id.fabtwo);
+        dimShadowDrop = (FrameLayout) findViewById(R.id.recordingListMainLayout);
+        dimShadowDrop.getForeground().setAlpha(0);
+        actionBarBackground = new ColorDrawable();
+        actionBarBackground.setColor(getResources().getColor(R.color.c52));
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(darkenColorRGB(getResources().getColor(R.color.c52)));
+        }
+
+        getActionBar().setBackgroundDrawable(actionBarBackground);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            getActionBar().setElevation(0);
+            getActionBar().setElevation(8);
         }
-        //fab = (FloatingActionButton) findViewById(R.id.fabtwo);
-        //fab.setOnClickListener(new View.OnClickListener() {
-            //@Override
-            //public void onClick(View v) {
-               // Intent recordActivityIntent = new Intent(v.getContext(), RecordActivity.class);
-              //  startActivity(recordActivityIntent);
 
-
-           // }
-        //});
         slidingUpPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        slidingUpPanelLayout.hidePanel();
-        vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS, this);
-        vPager = (ViewPager) findViewById(R.id.viewPager);
-        vPager.setAdapter(vAdapter);
+        //vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS, this);
+       // vPager = (ViewPager) findViewById(R.id.viewPager);
+        //vPager.setAdapter(vAdapter);
 
 
-        vPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
+
+        // Consume touch event for panel so that touch does not get transfered to child views.
+        FrameLayout mainContainer = (FrameLayout) findViewById(R.id.slideUpPanel);
+        mainContainer.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
+        /*vPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
@@ -71,24 +79,18 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
                 sendMessage();
             }
 
-            //TODO add action bar color changing...
-
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
                 if(position >= vAdapter.getCount()-1){
                     return;
                 }
-                actionBarBackground = new ColorDrawable();
-                getActionBar().setBackgroundDrawable(actionBarBackground);
-                ColorFragment from = (ColorFragment) vAdapter.getItem(position);
-                ColorFragment to = (ColorFragment) vAdapter.getItem(position + 1);
+
+                ColorFragment from =  vAdapter.getItem(position);
+                ColorFragment to =  vAdapter.getItem(position + 1);
                 final int blended = blendColors(to.getColor(), from.getColor(), positionOffset);
                 actionBarBackground.setColor(blended);
-                //fab.mColorNormal = blended;
-                //fab.mColorNormal = blended;
-                //fab.updateBackground();
-                //fab.setColor(blended);
+
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     getWindow().setStatusBarColor(darkenColorRGB(blended));
                 }
@@ -96,41 +98,35 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
 
             }
 
-        });
+        });*/
     }
-    public static int blendColors(int from, int to, float ratio) {
-        final float inverseRation = 1f - ratio;
-        final float r = Color.red(from) * ratio + Color.red(to) * inverseRation;
-        final float g = Color.green(from) * ratio + Color.green(to) * inverseRation;
-        final float b = Color.blue(from) * ratio + Color.blue(to) * inverseRation;
 
-        return Color.rgb((int) r, (int) g, (int) b);
-    }
     @Override
     protected void onResume() {
         super.onResume();
 
-        final FrameLayout mainLayout =(FrameLayout) findViewById(R.id.recordingListMainLayout);
-        mainLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                int heightPX = mainLayout.getHeight();
+        //final FrameLayout mainLayout =(FrameLayout) findViewById(R.id.recordingListMainLayout);
+        //mainLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+           // @Override
+            //public void onGlobalLayout() {
+                //int heightPX = mainLayout.getHeight();
 
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                int heightOffsetPX = (int) ((80*displayMetrics.density)+0.5);
+               // DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                //int heightOffsetPX = (int) ((80*displayMetrics.density)+0.5);
 
-                FrameLayout fragmentContainer = (FrameLayout) findViewById(R.id.playFragmentContainer);
-                fragmentContainer.getLayoutParams().height = heightPX-heightOffsetPX;
+                //FrameLayout fragmentContainer = (FrameLayout) findViewById(R.id.playFragmentContainer);
+                //fragmentContainer.getLayoutParams().height = heightPX-heightOffsetPX;
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    mainLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                }
-                    else{
-                        mainLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                    }
-                }
-        });
+              //  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                //    mainLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+               // }
+                  //  else{
+                   //     mainLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                  //  }
+            //    }
+      //  });
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -142,9 +138,6 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -211,6 +204,32 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
         hsv[2] *= 0.8f;
         return Color.HSVToColor(hsv);
     }
+    public void replaceFragment(Fragment fragment, int id, boolean addToBackStack){
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
+// Replace whatever is in the fragment_container view with this fragment,
+// and add the transaction to the back stack
+        transaction.replace(id, fragment);
+        if(addToBackStack) {
+            transaction.addToBackStack(null);
+        }
+// Commit the transaction
+        transaction.commit();
+    }
+    public ColorDrawable getActionBarDrawable(){
+        return actionBarBackground;
+    }
+    public FrameLayout getDimShadowDrop(){
+        return dimShadowDrop;
+    }
+
+    public static int blendColors(int from, int to, float ratio) {
+        final float inverseRation = 1f - ratio;
+        final float r = Color.red(from) * ratio + Color.red(to) * inverseRation;
+        final float g = Color.green(from) * ratio + Color.green(to) * inverseRation;
+        final float b = Color.blue(from) * ratio + Color.blue(to) * inverseRation;
+
+        return Color.rgb((int) r, (int) g, (int) b);
+    }
 
     }

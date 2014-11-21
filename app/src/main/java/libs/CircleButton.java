@@ -7,9 +7,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.widget.ImageView;
 import android.animation.ObjectAnimator;
 
+import com.bacon.corey.audiotimeshift.MainActivity;
 import com.bacon.corey.audiotimeshift.R;
 
 public class CircleButton extends ImageView {
@@ -30,10 +32,12 @@ public class CircleButton extends ImageView {
         private float animationProgress;
 
         private int pressedRingWidth;
-        private int defaultColor = Color.BLACK;
+        private int defaultColor;
         private int pressedColor;
         private ObjectAnimator pressedAnimator;
-
+        boolean colorSet = false;
+        int notPressedColor;
+        int mPressedColor;
         public CircleButton(Context context) {
             super(context);
             init(context, null);
@@ -99,7 +103,16 @@ public class CircleButton extends ImageView {
 
             this.invalidate();
         }
+    public void setDefaultColor(int color) {
+        this.notPressedColor = color;
+        this.mPressedColor = MainActivity.darkenColorRGB(color);
 
+        circlePaint.setColor(notPressedColor);
+        focusPaint.setColor(notPressedColor);
+        focusPaint.setAlpha(PRESSED_RING_ALPHA);
+
+        this.invalidate();
+    }
         private void hidePressedRing() {
             pressedAnimator.setFloatValues(pressedRingWidth, 0f);
             pressedAnimator.start();
@@ -114,7 +127,6 @@ public class CircleButton extends ImageView {
             this.setFocusable(true);
             this.setScaleType(ScaleType.CENTER_INSIDE);
             setClickable(true);
-
             circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             circlePaint.setStyle(Paint.Style.FILL);
 
@@ -129,10 +141,15 @@ public class CircleButton extends ImageView {
                 final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CircleButton);
                 color = a.getColor(R.styleable.CircleButton_cb_color, color);
                 pressedRingWidth = (int) a.getDimension(R.styleable.CircleButton_cb_pressedRingWidth, pressedRingWidth);
+
                 a.recycle();
+                notPressedColor = color;
+                mPressedColor = MainActivity.darkenColorRGB(notPressedColor);
+
             }
 
             setColor(color);
+
 
             focusPaint.setStrokeWidth(pressedRingWidth);
             final int pressedAnimationTime = getResources().getInteger(ANIMATION_TIME_ID);
@@ -140,7 +157,21 @@ public class CircleButton extends ImageView {
             pressedAnimator.setDuration(pressedAnimationTime);
         }
 
-        private int getHighlightColor(int color, int amount) {
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if(!colorSet && event.getAction() == MotionEvent.ACTION_DOWN) {
+            setColor(mPressedColor);
+            colorSet = true;
+        }
+        else if (colorSet && event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL){
+            setColor(notPressedColor);
+            colorSet = false;
+
+        }
+        return super.onTouchEvent(event);
+    }
+
+    private int getHighlightColor(int color, int amount) {
             return Color.argb(Math.min(255, Color.alpha(color)), Math.min(255, Color.red(color) + amount),
                     Math.min(255, Color.green(color) + amount), Math.min(255, Color.blue(color) + amount));
         }

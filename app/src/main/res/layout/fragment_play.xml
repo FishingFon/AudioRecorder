@@ -5,27 +5,81 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.bacon.corey.audiotimeshift.PlayFragment"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:id="@+id/mainContainer"
+    >
 
 
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/seekBar2"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@+id/playButtonFrameLayoutContainer"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="54dp" />
-
-
-    <libs.CircleButton
-        android:layout_width="50dip"
-        android:layout_height="50dip"
-        android:src="@drawable/ic_content_new"
-        app:cb_color="@color/holo_red_light"
-        app:cb_pressedRingWidth="4dp"
-        android:layout_marginBottom="8dp"
+        android:layout_alignParentStart="true" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:id="@+id/playButtonFrameLayoutContainer">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <libs.CircleButton
+                android:id="@+id/deleteButton"
+                android:layout_width="70dip"
+                android:layout_height="70dip"
+                app:cb_color="@color/white"
+                app:cb_pressedRingWidth="4dp"
+                android:layout_weight="1"
+                android:src="@drawable/ic_delete"
+
+                />
+
+             <libs.CircleButton
+                 android:id="@+id/previousButton"
+                 android:layout_width="70dip"
+                 android:layout_height="70dip"
+                 android:src="@drawable/ic_back"
+                 app:cb_color="@color/white"
+                 app:cb_pressedRingWidth="4dp"
+                 android:layout_weight="1"
+                 />
+
+             <libs.CircleButton
+                 android:id="@+id/playButton"
+                 android:layout_width="50dip"
+                 android:layout_height="50dip"
+                 android:src="@drawable/ic_play"
+                 app:cb_pressedRingWidth="4dp"
+                 android:layout_weight="1"
+                />
+
+             <libs.CircleButton
+                 android:id="@+id/nextButton"
+                 android:layout_width="70dip"
+                 android:layout_height="70dip"
+                 android:src="@drawable/ic_forward"
+                 app:cb_color="@color/white"
+                 app:cb_pressedRingWidth="4dp"
+                 android:layout_weight="1"
+                 />
+
+
+            <libs.CircleButton
+                android:id="@+id/waveToggleButton"
+                android:layout_width="70dip"
+                android:layout_height="70dip"
+                app:cb_color="@color/white"
+                app:cb_pressedRingWidth="4dp"
+                android:layout_weight="1"
+                android:src="@drawable/ic_wave_toggle_one"
+                />
+
+        </LinearLayout>
+    </FrameLayout>
+
 
 </RelativeLayout>

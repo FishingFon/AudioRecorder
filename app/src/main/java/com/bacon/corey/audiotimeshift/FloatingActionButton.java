@@ -118,7 +118,6 @@ public class FloatingActionButton extends ImageButton {
             createStrokesDrawable(circleRect),
             getIconDrawable()
         });
-
     float iconOffset = (mCircleSize - getDimension(R.dimen.fab_icon_size)) / 2f;
 
     int iconInsetHorizontal = (int) (mShadowRadius + iconOffset);
@@ -131,13 +130,12 @@ public class FloatingActionButton extends ImageButton {
   }
 
   Drawable getIconDrawable() {
-    if (mIcon != 0) {
-      return getResources().getDrawable(mIcon);
-    } else {
-      return new ColorDrawable(Color.TRANSPARENT);
-    }
+      if (mIcon != 0) {
+          return getResources().getDrawable(mIcon);
+      } else {
+          return new ColorDrawable(Color.TRANSPARENT);
+      }
   }
-
   private StateListDrawable createFillDrawable(RectF circleRect) {
     StateListDrawable drawable = new StateListDrawable();
     drawable.addState(new int[] { android.R.attr.state_pressed }, createCircleDrawable(circleRect, mColorPressed));
@@ -152,7 +150,6 @@ public class FloatingActionButton extends ImageButton {
     final Paint paint = new Paint();
     paint.setAntiAlias(true);
     paint.setColor(color);
-
     canvas.drawOval(circleRect, paint);
 
     return new BitmapDrawable(getResources(), bitmap);

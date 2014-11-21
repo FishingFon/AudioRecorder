@@ -39,7 +39,6 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
         //animTo = AnimationUtils.loadAnimation(context, R.anim.to_middle_animation);
         //animFrom = AnimationUtils.loadAnimation(context, R.anim.from_middle_animation);
         //isActionShowing = false;
-
         colorList.add(context.getResources().getColor(R.color.c1));
         colorList.add(context.getResources().getColor(R.color.c2));
         colorList.add(context.getResources().getColor(R.color.c3));
@@ -56,6 +55,7 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
         colorList.add(context.getResources().getColor(R.color.c16));
         colorList.add(context.getResources().getColor(R.color.c17));
         colorList.add(context.getResources().getColor(R.color.c18));
+
 
 
 
