@@ -1,6 +1,9 @@
 package com.bacon.corey.audiotimeshift;
 
+import android.animation.ObjectAnimator;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -34,6 +37,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
     SlidingUpPanelLayout slidingUpPanelLayout;
     ColorDrawable actionBarBackground;
     FrameLayout dimShadowDrop;
+    FloatingActionsMenu fabMenu;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +45,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
         replaceFragment(new FilesListFragment(), R.id.mainLayoutContainer, false);
 
         //fabSec.hide(true);
-         //fab = (FloatingActionButton)findViewById(R.id.fabtwo);
+        fabMenu = (FloatingActionsMenu)findViewById(R.id.fabMenu);
         dimShadowDrop = (FrameLayout) findViewById(R.id.recordingListMainLayout);
         dimShadowDrop.getForeground().setAlpha(0);
         actionBarBackground = new ColorDrawable();
@@ -210,6 +214,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
 // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack
         transaction.replace(id, fragment);
+
         if(addToBackStack) {
             transaction.addToBackStack(null);
         }
@@ -232,4 +237,22 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
         return Color.rgb((int) r, (int) g, (int) b);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (slidingUpPanelLayout.isPanelExpanded()){
+            slidingUpPanelLayout.collapsePanel();
+        }
+        else if(fabMenu.isExpanded()){
+            fabMenu.collapse();
+
+            ObjectAnimator anim =  ObjectAnimator.ofInt(getDimShadowDrop().getForeground(), "alpha", 180, 0);
+            anim.setDuration(200);
+            anim.start();
+        }
+        else if(!slidingUpPanelLayout.isPanelExpanded() && !fabMenu.isExpanded()) {
+            super.onBackPressed();
+
+        }
     }
+
+}

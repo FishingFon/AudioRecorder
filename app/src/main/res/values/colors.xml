@@ -36,6 +36,9 @@
     <color name="c17">#795548</color>
     <color name="c18">#607D8B</color>
 
+<!-- Accent material colors -->
+    <color name="a1">#9E9D24</color>
+    <color name="a2">#A1887F</color>
 
 
     <color name="recordDefaultColor">#F44336</color>

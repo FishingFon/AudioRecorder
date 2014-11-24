@@ -7,6 +7,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_play">Play</string>
     <string name="title_activity_record">Record</string>
+    <string name="recording_options_file_key">com.bacon.corey.recording_options_file_key</string>
+    <string name="preferences_samplerate_diaglog_title">Sample Rate</string>
 
     <string-array name="sampleRates">
         <item>8 kHz</item> <!-- 8000 Hz -->
@@ -19,4 +21,6 @@
 
 
     </string-array>
+
+
 </resources>

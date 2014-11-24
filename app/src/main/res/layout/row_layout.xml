@@ -17,7 +17,7 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="20dp"
         android:background="@drawable/circle_textview_background"
-        android:text="20m"
+        android:text="N/A"
         android:textColor="@color/white"
         android:gravity="center_vertical|center_horizontal"
         />
@@ -41,7 +41,7 @@
         android:layout_alignParentRight="true"
         android:ellipsize="marquee"
         android:singleLine="true"
-        android:text="32 MB"
+        android:text="N/A"
         android:textSize="8sp" />
 
 
@@ -55,7 +55,7 @@
         android:layout_alignWithParentIfMissing="true"
         android:layout_toRightOf="@id/row_icon"
         android:gravity="center_vertical"
-        android:text="01/01/2014"
+        android:text="N/A"
         android:textSize="8sp" />
 
 

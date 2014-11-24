@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RecordOptionsFragment extends ColorFragment{
         int mNum;
         public static int FRAGMENT_COLOR;
@@ -52,7 +55,8 @@ public class RecordOptionsFragment extends ColorFragment{
                                  Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_record_options, container, false);
             Spinner sampleRateSpinner = (Spinner) v.findViewById(R.id.sampleRateSpinner);
-            ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.sampleRates, android.R.layout.simple_spinner_item);
+            //ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.sampleRates, android.R.layout.simple_spinner_item);
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, RecordingOptionsCalculator.getSupportedSampleRateStrings());
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             sampleRateSpinner.setAdapter(spinnerAdapter);
             return v;

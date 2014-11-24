@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -27,7 +28,6 @@
             </intent-filter>
         </activity>
 
-
         <service
             android:name="com.bacon.corey.audiotimeshift.PlayService"
             android:exported="false" >
@@ -42,8 +42,16 @@
                 android:value="com.bacon.corey.audiotimeshift.MainActivity" />
         </activity>
         <activity
-            android:name=".RecordActivity"
+            android:name="com.bacon.corey.audiotimeshift.RecordActivity"
             android:label="@string/title_activity_record"
+            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bacon.corey.audiotimeshift.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.bacon.corey.audiotimeshift.SettingsActivity"
+            android:label="@string/title_activity_settings"
             android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

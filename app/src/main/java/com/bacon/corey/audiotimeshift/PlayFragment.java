@@ -1,35 +1,19 @@
 package com.bacon.corey.audiotimeshift;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
-import java.util.zip.Inflater;
 
 import libs.CircleButton;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link PlayFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link PlayFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class PlayFragment extends Fragment {
     Bundle bundle;
     Recording recording;
@@ -79,13 +63,14 @@ public class PlayFragment extends Fragment {
         waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
         deleteButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY); // TODO
 
-        final AlphaAnimation start = new AlphaAnimation(1.0f, 0.0f);
-        start.setDuration(200);
+        final AlphaAnimation start = new AlphaAnimation(1.0f, 0.5f);
+        start.setDuration(100);
 
-        final AlphaAnimation end = new AlphaAnimation(0.0f, 1.0f);
-        end.setDuration(200);
+        final AlphaAnimation end = new AlphaAnimation(0.5f, 1.0f);
+        end.setDuration(100);
 
         waveToggleButton.setTag(clicked);
+        playButton.setTag(clicked);
 
         waveToggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,12 +83,12 @@ public class PlayFragment extends Fragment {
                     }
                    @Override
                     public void onAnimationEnd(Animation animation) {
-                        if((Boolean)waveToggleButton.getTag() == false) {
+                        if(!((Boolean) waveToggleButton.getTag())) {
                             waveToggleButton.setImageResource(R.drawable.ic_wave_toggle_two);
                             waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
                             waveToggleButton.setTag(new Boolean(true));
                         }
-                        else if((Boolean)waveToggleButton.getTag() == true) {
+                        else if((Boolean) waveToggleButton.getTag()) {
                             waveToggleButton.setImageResource(R.drawable.ic_wave_toggle_one);
                             waveToggleButton.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
                             waveToggleButton.setTag(new Boolean(false));
@@ -119,7 +104,6 @@ public class PlayFragment extends Fragment {
             }
         });
 
-        playButton.setTag(clicked);
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override

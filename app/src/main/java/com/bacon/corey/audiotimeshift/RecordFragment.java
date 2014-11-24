@@ -1,5 +1,7 @@
 package com.bacon.corey.audiotimeshift;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.media.AudioFormat;
@@ -13,6 +15,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -26,6 +30,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.Date;
+
+import libs.CircleButton;
 
 
 /**
@@ -70,11 +76,59 @@ public class RecordFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_record, container, false);
-    }
+        final View view = inflater.inflate(R.layout.fragment_record, container, false);
+
+        final CircleButton startButton = (CircleButton) view.findViewById(R.id.startRecordingButton);
+        final CircleButton waveToggleButton = (CircleButton) view.findViewById(R.id.waveToggleButton_recording);
+        final CircleButton cancelButton = (CircleButton) view.findViewById(R.id.cancelButton);
+
+        cancelButton.getDrawable().setColorFilter(getResources().getColor(R.color.recordDefaultColor), PorterDuff.Mode.MULTIPLY); // TODO
+        waveToggleButton.getDrawable().setColorFilter(getResources().getColor(R.color.recordDefaultColor), PorterDuff.Mode.MULTIPLY); // TODO
+
+        final AlphaAnimation start = new AlphaAnimation(1.0f, 0.5f);
+        start.setDuration(100);
+
+        final AlphaAnimation end = new AlphaAnimation(0.5f, 1.0f);
+        end.setDuration(100);
+        startButton.setTag(new Boolean(false));
+
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                start.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        if(!((Boolean) startButton.getTag())) {
+                            startButton.setImageResource(R.drawable.ic_play);
+                            startButton.setTag(new Boolean(true));
+                        }
+                        else if((Boolean) startButton.getTag()) {
+                            startButton.setImageResource(R.drawable.ic_pause);
+                            startButton.setTag(new Boolean(false));
+                        }
+                        startButton.startAnimation(end);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+                startButton.startAnimation(start);
+
+            }
+        });
 
 
-    @Override
+
+                return view;
+            }
+
+
+        @Override
     public void onDestroyView() {
         super.onDestroyView();
         if(extAudioRecord != null){

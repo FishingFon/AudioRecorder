@@ -1,9 +1,13 @@
 package com.bacon.corey.audiotimeshift;
 
+import android.app.IntentService;
+import android.app.Service;
+import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.MediaRecorder.AudioSource;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.io.File;
@@ -11,12 +15,16 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class ExtAudioRecorder
+
 {
     private final static int[] sampleRates = {44100, 22050, 11025, 8000};
+    int sampleRate, channels;
+    ExtAudioRecorder result;
+
 
     public static ExtAudioRecorder getInstanse(Boolean recordingCompressed)
     {
-        ExtAudioRecorder result = null;
+        ExtAudioRecorder result;
 
         if(recordingCompressed)
         {
@@ -40,7 +48,11 @@ public class ExtAudioRecorder
             } while((++i<sampleRates.length) & !(result.getState() == ExtAudioRecorder.State.INITIALIZING));
         }
         return result;
+
     }
+
+
+
 
     /**
      * INITIALIZING : recorder is initializing;

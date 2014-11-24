@@ -11,6 +11,12 @@
 
     >
 
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:padding="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:orientation="vertical"
@@ -20,8 +26,9 @@
         android:layout_height="match_parent"
         android:layout_margin="0dp"
         android:id="@+id/recordingListMainLayout"
-        android:foreground="@drawable/dim_shadow_shape"
->
+        android:foreground="@drawable/dim_shadow_shape_dark"
+
+        >
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -30,6 +37,7 @@
             android:gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+
             >
             <FrameLayout
                 android:layout_width="match_parent"
@@ -49,65 +57,176 @@
 
         </LinearLayout>
 
-        <com.bacon.corey.audiotimeshift.FloatingActionsMenu
-            android:id="@+id/fabMenu"
-            android:layout_width="match_parent"
+    </FrameLayout>
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/textview_rounded_corner_background_fam"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="33dp"
+        android:layout_marginRight="90dp"
+        android:id="@+id/fabMainText"
+
+        >
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
-            app:fab_addButtonColorNormal="@color/holo_red_light"
-            app:fab_addButtonColorPressed="@color/c16"
-            app:fab_addButtonPlusIconColor="@color/white"
-            app:fab_expandDirection="up"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="16dp"
+            android:text="Main Option - Quick Record"
+            android:textAlignment="center"
+            android:padding="6dp"
+            android:fontFamily="sans-serif-medium"
+
+            />
+    </FrameLayout>
+    <com.bacon.corey.audiotimeshift.FloatingActionsMenu
+        android:id="@+id/fabMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:gravity="right"
+        app:fab_addButtonColorNormal="@color/holo_red_light"
+        app:fab_addButtonColorPressed="@color/c16"
+        app:fab_addButtonPlusIconColor="@color/white"
+        app:fab_expandDirection="up"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+
+        >
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/textview_rounded_corner_background_fam"
+                android:layout_marginRight="14dp"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option Four"
+                    android:textAlignment="center"
+                    android:padding="6dp"
+                    android:fontFamily="sans-serif-medium"
+
+                    />
+            </FrameLayout>
+
             <com.bacon.corey.audiotimeshift.FloatingActionButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/holo_red_light"
-                app:fab_colorPressed="@color/c16"
+                app:fab_colorNormal="@color/c15"
+                app:fab_colorPressed="@color/c15"
                 app:fab_size="mini"
                 />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/textview_rounded_corner_background_fam"
+                android:layout_marginRight="14dp"
+
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option Three"
+                    android:textAlignment="center"
+                    android:padding="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    />
+            </FrameLayout>
+
             <com.bacon.corey.audiotimeshift.FloatingActionButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/holo_red_light"
-                app:fab_colorPressed="@color/c16"
-                app:fab_size="mini"/>
+                app:fab_colorNormal="@color/c8"
+                app:fab_colorPressed="@color/c8"
+                app:fab_size="mini"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/textview_rounded_corner_background_fam"
+                android:layout_marginRight="14dp"
+
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option Two"
+                    android:textAlignment="center"
+                    android:padding="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    />
+            </FrameLayout>
+
             <com.bacon.corey.audiotimeshift.FloatingActionButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/holo_red_light"
-                app:fab_colorPressed="@color/c16"
-                app:fab_size="mini"/>
+                app:fab_colorNormal="@color/a1"
+                app:fab_colorPressed="@color/a1"
+                app:fab_size="mini"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/textview_rounded_corner_background_fam"
+                android:layout_marginRight="14dp"
+
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option One"
+                    android:textAlignment="center"
+                    android:padding="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    />
+            </FrameLayout>
 
             <com.bacon.corey.audiotimeshift.FloatingActionButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/holo_red_light"
-                app:fab_colorPressed="@color/c16"
-                app:fab_size="mini"/>
-
-            </com.bacon.corey.audiotimeshift.FloatingActionsMenu>
-
-<!--
-        <libs.FloatingActionButton
-            android:id="@+id/fabbutton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_gravity="bottom|right"
-            android:layout_marginBottom="16dp"
-            android:layout_marginRight="16dp"
-            app:colour="@color/holo_red_light"
-            app:drawable="@drawable/ic_content_new"
-
-
-        />
--->
-    </FrameLayout>
-
+                app:fab_colorNormal="@color/a2"
+                app:fab_colorPressed="@color/a2"
+                app:fab_size="mini"
+                />
+        </LinearLayout>
+    </com.bacon.corey.audiotimeshift.FloatingActionsMenu>
+</RelativeLayout>
+</RelativeLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -116,7 +235,6 @@
             android:textSize="16sp"
             android:id="@+id/slideUpPanel"
             >
-
 
         </FrameLayout>
 

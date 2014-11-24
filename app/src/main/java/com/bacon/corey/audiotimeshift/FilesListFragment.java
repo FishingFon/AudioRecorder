@@ -1,12 +1,15 @@
 package com.bacon.corey.audiotimeshift;
 
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -23,11 +26,18 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,12 +54,18 @@ public class FilesListFragment extends ColorFragment{
     ListView listView;
     FloatingActionsMenu fabMenu;
     MainActivity mainActivity;
+    boolean fabExpanded;
     SlidingUpPanelLayout slidingUpPanelLayout;
     int beforeScrollPosition;
     int defaultColor;
     int actionBarColor;
     int color;
+    boolean fabMainTextVisible;
+    
+    AlphaAnimation mainTextAlphaAnimFadeIn;
+    AlphaAnimation mainTextAlphaAnimFadeOut;
 
+    View v;
 
 
     // Methods
@@ -79,7 +95,8 @@ public class FilesListFragment extends ColorFragment{
         //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
         new UpdateDataSet().execute();
         defaultColor = -1;
-
+        fabExpanded = false;
+        fabMainTextVisible = true;
         fObserver = new FileObserver(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY) {
             @Override
             public void onEvent(int event, String path) {
@@ -112,10 +129,19 @@ public class FilesListFragment extends ColorFragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_files, container, false);
+        v = inflater.inflate(R.layout.fragment_files, container, false);
         actionBarBackground = mainActivity.getActionBarDrawable();
         actionBarColor = getResources().getColor(R.color.c52);
-
+        final FrameLayout fabMainText = (FrameLayout) getActivity().findViewById(R.id.fabMainText);
+        final FloatingActionsMenu fabMenu = (FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
+        final AddFloatingActionButton fabMain = (AddFloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
+        if(!fabMenu.isExpanded()){
+            fabMainText.setVisibility(View.GONE);
+        }
+        mainTextAlphaAnimFadeIn = new AlphaAnimation(0f, 1f);
+        mainTextAlphaAnimFadeOut = new AlphaAnimation(1f, 0f);
+        mainTextAlphaAnimFadeIn.setDuration(200);
+        mainTextAlphaAnimFadeOut.setDuration(200);
 
         //fab = mainActivity.getFab();
         slidingUpPanelLayout = (SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
@@ -124,26 +150,56 @@ public class FilesListFragment extends ColorFragment{
         listView.setAdapter(rAdapter);
         rAdapter.notifyDataSetChanged();
         // Add onclick events to fab menu buttons
-        final FloatingActionsMenu fabMenu = (FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
 
-        final AddFloatingActionButton fabMain = (AddFloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
         fabMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
+                if(!fabMenu.isExpanded()) {
+                    fabMainText.setVisibility(View.VISIBLE);
+                    fabMainText.startAnimation(mainTextAlphaAnimFadeIn);
+                }
                 boolean expanded = fabMenu.toggle();
+                mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_light));
+                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+
+                ObjectAnimator anim =  ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 0, 180);
+                anim.setDuration(200);
+                anim.start();
+                //mainActivity.getDimShadowDrop().getForeground().setAlpha(180);
                 if (expanded){
                     ((MainActivity)getActivity()).replaceFragment(new RecordFragment(), R.id.slideUpPanel, false);
                     slidingUpPanelLayout.expandPanel();
                     defaultColor = getResources().getColor(R.color.recordDefaultColor);
+
+
                 }
 
 
             }
         });
+
         listView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if(fabMenu.isExpanded()) {
+                    ObjectAnimator anim = ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 180, 0);
+                    anim.setDuration(200);
+                    anim.start();
+
+
+                }
+                if(fabMenu.isExpanded()) {
+                    fabMainText.startAnimation(mainTextAlphaAnimFadeOut);
+                    fabMainText.setVisibility(View.GONE);
+
+                }
                 fabMenu.collapse();
+
+                //mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+                fabExpanded = false;
+
                 return false;
             }
         });
@@ -154,6 +210,8 @@ public class FilesListFragment extends ColorFragment{
                 bundle.putSerializable("recording", rAdapter.getItem(position));
                 bundle.putInt("color", rAdapter.getRowColor(position));
 
+                mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_dark));
+
                 PlayFragment mPlayFragment = new PlayFragment();
 
                 mPlayFragment.setArguments(bundle);
@@ -161,25 +219,7 @@ public class FilesListFragment extends ColorFragment{
 
                 color = rAdapter.getRowColor(position);
 
-
-
-                //getActivity().getActionBar().setBackgroundDrawable(actionBarBackground);
-               // slidingUpPanelLayout.setPanelHeight(0);
-                //beforeScrollPosition = -listView.getChildAt(0).getTop() + listView.getFirstVisiblePosition() * listView.getChildAt(0).getHeight();
-
-                //listView.smoothScrollToPositionFromTop(position, 0, 200);
-                //slidingUpPanelLayout.showPanel();
                 slidingUpPanelLayout.expandPanel();
-
-
-
-
-                //Intent playIntent = new Intent(getActivity(), PlayService.class);
-                //playIntent.putExtra("action", Constants.PLAY);
-                //playIntent.putExtra("playItemPosition", position);
-                //playIntent.putExtra("playItem", recordingsList.get(position));
-
-                //getActivity().startService(playIntent);
             }
         });
         slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -194,7 +234,7 @@ public class FilesListFragment extends ColorFragment{
 
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-
+                fabMenu.collapse();
                 if(defaultColor != -1){
                     mColor = defaultColor;
                 }
@@ -215,6 +255,9 @@ public class FilesListFragment extends ColorFragment{
             @Override
             public void onPanelExpanded(View panel) {
                 //fab.hide(true);
+                    fabMainText.setVisibility(View.GONE);
+
+
             }
 
             @Override
@@ -347,8 +390,16 @@ public class FilesListFragment extends ColorFragment{
                 defaultColor = Color.GRAY;
                 slidingUpPanelLayout.expandPanel();
                 return true;
+            case R.id.action_settings:
+                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
             default: return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    public void toggleFabMenu(){
+        final FrameLayout fabMainText = (FrameLayout) v.findViewById(R.id.fabMainText);
+        fabMainText.setVisibility(View.GONE);
     }
 }

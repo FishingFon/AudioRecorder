@@ -16,4 +16,5 @@
         android:id="@+id/sampleRateSpinner"
 
         android:layout_marginTop="44dp" />
+
 </RelativeLayout>
