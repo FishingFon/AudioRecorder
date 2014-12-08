@@ -1,24 +1,13 @@
 package com.bacon.corey.audiotimeshift;
 
 import android.util.Log;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
-import java.util.RandomAccess;
 
 public class Recording implements Comparable<Recording>, Serializable {
     private File recording;

@@ -11,7 +11,9 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,18 +29,14 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
     TextView icon;
     View row;
     int color;
-   // Animation animTo;
-   // Animation animFrom;
-   // boolean isActionShowing;
+
     ArrayList <Integer> colorList = new ArrayList<Integer>();
     public RecordingListAdapter(Context context, int layoutResourceId, List<Recording> recordings) {
         super(context, R.layout.row_layout, recordings);
         this.context = context;
         this.recordings = recordings;
         this.layoutResourceId = layoutResourceId;
-        //animTo = AnimationUtils.loadAnimation(context, R.anim.to_middle_animation);
-        //animFrom = AnimationUtils.loadAnimation(context, R.anim.from_middle_animation);
-        //isActionShowing = false;
+
         colorList.add(context.getResources().getColor(R.color.c1));
         colorList.add(context.getResources().getColor(R.color.c2));
         colorList.add(context.getResources().getColor(R.color.c3));
@@ -63,7 +61,7 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
 
     //public void addItems()
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
          row = convertView;
 
         if(row == null) {
@@ -77,14 +75,16 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
             icon = (TextView) row.findViewById(R.id.row_icon);
             long recordingLen = recordings.get(position).getAudioLengthInSeconds();
 
+
+
         if (recordingLen < 60){
             icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())) + "s");
         }
-        if (recordingLen >= 60 && recordingLen < 3600){
+        else if (recordingLen >= 60 && recordingLen < 3600){
             icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())/60) + "m");
 
         }
-        if (recordingLen >= 3600){
+        else if (recordingLen >= 3600){
             icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())/3600) + "h");
 
         }
@@ -96,8 +96,6 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
             date.setText(recordings.get(position).getDateString());
             title.setText(recordings.get(position).getTitleString());
             length.setText(recordings.get(position).getFileSizeString());
-
-
 
 
         return row;

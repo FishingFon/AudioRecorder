@@ -566,8 +566,7 @@ public class ExtAudioRecorder
 
                     randomAccessWriter.close();
                 }
-                catch(IOException e)
-                {
+                catch(IOException e){
                     Log.e(ExtAudioRecorder.class.getName(), "I/O exception occured while closing output file");
                     state = State.ERROR;
                 }

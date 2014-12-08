@@ -1,64 +1,93 @@
 package com.bacon.corey.audiotimeshift;
 
 import android.animation.ObjectAnimator;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
-import android.util.DisplayMetrics;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-public class MainActivity extends FragmentActivity implements PlayFragment.OnFragmentInteractionListener {
+
+public class MainActivity extends ActionBarActivity implements PlayFragment.OnFragmentInteractionListener {
     //ViewPagerAdapter vAdapter;
     //ViewPager vPager;
     //FloatingActionButton fab;
+
     SlidingUpPanelLayout slidingUpPanelLayout;
     ColorDrawable actionBarBackground;
     FrameLayout dimShadowDrop;
     FloatingActionsMenu fabMenu;
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    DrawerLayout drawerLayout;
+    Toolbar toolbar;
+    FilesListFragment fileListFragment;
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        replaceFragment(new FilesListFragment(), R.id.mainLayoutContainer, false);
+        fileListFragment = new FilesListFragment();
 
-        //fabSec.hide(true);
+        replaceFragment(fileListFragment, R.id.mainLayoutContainer, false);
+
+
+        // Action bar setup
+        toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.draw_open, R.string.draw_closed);
+        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        getToolbarDimShadowDrop().getForeground().setAlpha(0);
+        //toolbar.setSubtitle(R.string.test);
+        //toolbar.setSubtitleTextAppearance(this, R.style.Test);
+        toolbar.setTitleTextAppearance(this, R.style.TitleTheme);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        actionBarDrawerToggle.syncState();
+        toolbar.setSubtitleTextAppearance(this, R.style.SubTitleRecordingTheme);
+
         fabMenu = (FloatingActionsMenu)findViewById(R.id.fabMenu);
         dimShadowDrop = (FrameLayout) findViewById(R.id.recordingListMainLayout);
         dimShadowDrop.getForeground().setAlpha(0);
         actionBarBackground = new ColorDrawable();
         actionBarBackground.setColor(getResources().getColor(R.color.c52));
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(darkenColorRGB(getResources().getColor(R.color.c52)));
-        }
 
-        getActionBar().setBackgroundDrawable(actionBarBackground);
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            getActionBar().setElevation(8);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            toolbar.setBackground(actionBarBackground);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(darkenColorRGB(getResources().getColor(R.color.c52)));
+            }
         }
+        else {
+            toolbar.setBackgroundDrawable(actionBarBackground);
+        }
+        //getActionBar().setBackgroundDrawable(actionBarBackground);
+
+        //if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            //getActionBar().setElevation(8);
+        //}
 
         slidingUpPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         //vAdapter = new ViewPagerAdapter(getSupportFragmentManager(), ITEMS, this);
@@ -130,7 +159,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
             //    }
       //  });
     }
-
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -144,7 +173,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
 
         return super.onOptionsItemSelected(item);
     }
-
+8*/
     public void play(View view){
         Toast.makeText(this, "play", Toast.LENGTH_SHORT).show();
 
@@ -211,14 +240,11 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
     public void replaceFragment(Fragment fragment, int id, boolean addToBackStack){
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-// Replace whatever is in the fragment_container view with this fragment,
-// and add the transaction to the back stack
         transaction.replace(id, fragment);
 
         if(addToBackStack) {
             transaction.addToBackStack(null);
         }
-// Commit the transaction
         transaction.commit();
     }
     public ColorDrawable getActionBarDrawable(){
@@ -227,14 +253,12 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
     public FrameLayout getDimShadowDrop(){
         return dimShadowDrop;
     }
-
-    public static int blendColors(int from, int to, float ratio) {
-        final float inverseRation = 1f - ratio;
-        final float r = Color.red(from) * ratio + Color.red(to) * inverseRation;
-        final float g = Color.green(from) * ratio + Color.green(to) * inverseRation;
-        final float b = Color.blue(from) * ratio + Color.blue(to) * inverseRation;
-
-        return Color.rgb((int) r, (int) g, (int) b);
+    public FrameLayout getToolbarDimShadowDrop(){
+        FrameLayout toolbarShadow = (FrameLayout)findViewById(R.id.toolbarShadow);
+        return toolbarShadow;
+    }
+    public Toolbar getToolbar(){
+        return toolbar;
     }
 
     @Override
@@ -244,6 +268,7 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
         }
         else if(fabMenu.isExpanded()){
             fabMenu.collapse();
+            fileListFragment.hideFabMaintext();
 
             ObjectAnimator anim =  ObjectAnimator.ofInt(getDimShadowDrop().getForeground(), "alpha", 180, 0);
             anim.setDuration(200);
@@ -253,6 +278,14 @@ public class MainActivity extends FragmentActivity implements PlayFragment.OnFra
             super.onBackPressed();
 
         }
+
+    }
+    public ActionBarDrawerToggle getActionBarDrawerToggle(){
+        return actionBarDrawerToggle;
+    }
+    public void setDrawIndicatiorEnabled(boolean enabled){
+        actionBarDrawerToggle.setDrawerIndicatorEnabled(enabled);
+
     }
 
 }

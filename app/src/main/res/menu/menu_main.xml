@@ -4,6 +4,6 @@
 
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/record_options" android:title="record_options"
-        android:orderInCategory="100" app:showAsAction="ifRoom" />
+    <item android:id="@+id/record_options" android:title="Record Options"
+        android:orderInCategory="100" app:showAsAction="never" />
 </menu>

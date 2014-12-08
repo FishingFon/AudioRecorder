@@ -52,7 +52,7 @@
                  android:id="@+id/playButton"
                  android:layout_width="50dip"
                  android:layout_height="50dip"
-                 android:src="@drawable/ic_play"
+                 android:src="@drawable/ic_pause"
                  app:cb_pressedRingWidth="4dp"
                  android:layout_weight="1"
                 />

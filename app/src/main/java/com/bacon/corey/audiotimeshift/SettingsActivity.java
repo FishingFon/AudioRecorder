@@ -21,35 +21,6 @@ public class SettingsActivity extends Activity {
         getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
     }
 
-    public static class SettingsFragment extends PreferenceFragment{
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            return super.onCreateView(inflater, container, savedInstanceState);
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
-            // Sample Rates
-            addPreferencesFromResource(R.xml.preferences);
-            ListPreference listPreference = (ListPreference)findPreference("pref_sampleRates");
-            ArrayList<String> supportedSampleRateStrings = RecordingOptionsCalculator.getSupportedSampleRateStrings();
-            ArrayList<Integer> supportedSampleRateValues = RecordingOptionsCalculator.getSupportedSampleRates();
-            CharSequence[] csv = new CharSequence[supportedSampleRateValues.size()];
-            int i = 0;
-            for(Integer temp: supportedSampleRateValues){
-                csv[i] = Integer.toString(temp);
-                i++;
-            }
-            listPreference.setEntryValues(csv);
-            listPreference.setEntries(supportedSampleRateStrings.toArray(new CharSequence[supportedSampleRateStrings.size()]));
-            listPreference.setDefaultValue(RecordingOptionsCalculator.getHighestSampleRate());
-
-            // Channels
-
-    }
-}
 }
 

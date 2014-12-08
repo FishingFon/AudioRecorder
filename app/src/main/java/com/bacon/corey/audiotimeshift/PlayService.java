@@ -2,10 +2,14 @@ package com.bacon.corey.audiotimeshift;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.Service;
 import android.content.Intent;
+import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaPlayer;
+import android.os.Binder;
+import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -15,50 +19,102 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
 
 
-public class PlayService extends IntentService {
-
-    public PlayService() {
-        super("PlayService");
-    }
+public class PlayService extends Service {
     AudioTrack audioTrack;
     Notification notifaction;
     MediaPlayer mediaPlayer;
-    @Override
-    protected void onHandleIntent(Intent intent) {
-
-        if(intent.getIntExtra("playItemPosition", -1) != -1){
-            Log.v("playservice", "play called");
-            //play(AudioFormat.CHANNEL_OUT_MONO, 44100, AudioFormat.ENCODING_PCM_16BIT, intent.getIntExtra("playItemPosition", -1), (Recording)intent.getSerializableExtra("playItem"));
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_play).setContentText("Recording Playing").setContentText("content text blah blah");
-            //final Intent notificationIntent = new Intent(this, MainActivity.class);
-            //final PendingIntent pendingIntent = new PendingIntent.getActivity(this, 101, notificationIntent, 101);
-            notifaction = notificationBuilder.build();
-            startForeground(Constants.FOREGROUND_ID, notifaction);
-            playMediaPlayer(intent.getIntExtra("playItemPosition", -1), (Recording)intent.getSerializableExtra("playItem"));
-            stopForeground(true);
-        }
-        else if(intent.getIntExtra("action", -1) == Constants.STOP) {
-            stopMediaPlayer();
-        }
-        else if(intent.getIntExtra("action", -1) == Constants.PAUSE){
-            pauseMediaPlayer();
+    Recording recording;
+    int position;
+    public static boolean serviceIsRunning = false;
+    boolean currentlyPlaying;
+    public final IBinder mBinder = new LocalBinder();
+    public class LocalBinder extends Binder {
+        PlayService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return PlayService.this;
         }
     }
 
-
-    public void playMediaPlayer(int position, Recording recording){
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.v("playservice", "play called");
+        //final Intent notificationIntent = new Intent(this, MainActivity.class);
+        //final PendingIntent pendingIntent = new PendingIntent.getActivity(this, 101, notificationIntent, 101);
         try {
+            recording = (Recording) intent.getSerializableExtra("playItem");
+            position = intent.getIntExtra("playItemPosition", -1);
+            //playNewFile();
+        }catch (Exception e){
+
+        }
+        return mBinder;
+    }
+
+    public PlayService() {
+        //super("PlayService");
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        serviceIsRunning = false;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        serviceIsRunning = true;
+    }
+
+    /*
+        @Override
+        protected void onHandleIntent(Intent intent) {
+            if(intent.getIntExtra("playItemPosition", -1) != -1){
+                Log.v("playservice", "play called");
+                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_play).setContentText("Recording Playing").setContentText("content text blah blah");
+                //final Intent notificationIntent = new Intent(this, MainActivity.class);
+                //final PendingIntent pendingIntent = new PendingIntent.getActivity(this, 101, notificationIntent, 101);
+                notifaction = notificationBuilder.build();
+                startForeground(Constants.FOREGROUND_ID, notifaction);
+                recording = (Recording)intent.getSerializableExtra("playItem");
+                playMediaPlayer(intent.getIntExtra("playItemPosition", -1), recording);
+                stopForeground(true);
+            }
+            else if(intent.getIntExtra("action", -1) == Constants.STOP) {
+                stopMediaPlayer();
+            }
+            else if(intent.getIntExtra("action", -1) == Constants.PAUSE){
+                pauseMediaPlayer();
+            }
+        }
+
+    */
+    public void playNewFile(int pos, Recording rec){
+        playMediaPlayer(pos, rec);
+
+    }
+    public void playMediaPlayer(int pos, Recording rec){
+        try {
+
             mediaPlayer = new MediaPlayer();
+
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setDataSource(recording.getFilePathString());
+            mediaPlayer.setDataSource(rec.getFilePathString());
             mediaPlayer.prepare();
             mediaPlayer.start();
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            currentlyPlaying = true;
+
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+            {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    mediaPlayer.release();
+                    //mediaPlayer.release();
+                    currentlyPlaying = false;
+
                 }
             });
         }catch (IOException e){
@@ -71,7 +127,10 @@ public class PlayService extends IntentService {
     public void stopMediaPlayer(){
         mediaPlayer.stop();
         mediaPlayer.release();
+        currentlyPlaying = false;
+
     }
+    /*
     public void play(int CHANNEL_OUT_MODE, int frequency, int ENCODING_FORMAT, int position, Recording recording) {
           File file = recording.getFile();
         //File file = new File(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY + File.separator + recording.getTitleString());
@@ -91,7 +150,7 @@ public class PlayService extends IntentService {
             int bite = 44;
             int remainder = musicLength % bite;
             short[] music = new short[bite];
-            int headerByteCount = 0;  // TODO add later
+            int headerByteCount = 0;
             while (dis.available() >= bite) {
                 for (int j = 0; j < bite; j++) {
                     music[j] = dis.readShort();
@@ -123,6 +182,14 @@ public class PlayService extends IntentService {
     }
     public void pause(){
         audioTrack.pause();
+    }
+    */
+    public MediaPlayer getMediaPlayer(){
+       return mediaPlayer;
+    }
+    public void setMediaPlayerVolume(int volume){
+        mediaPlayer.setVolume(volume, volume);
+
     }
 
 }

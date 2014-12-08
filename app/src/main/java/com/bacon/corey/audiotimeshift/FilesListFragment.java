@@ -2,42 +2,32 @@ package com.bacon.corey.audiotimeshift;
 
 
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.TextView;
-
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,22 +42,36 @@ public class FilesListFragment extends ColorFragment{
     ColorDrawable actionBarBackground;
     FileObserver fObserver;
     ListView listView;
-    FloatingActionsMenu fabMenu;
     MainActivity mainActivity;
     boolean fabExpanded;
     SlidingUpPanelLayout slidingUpPanelLayout;
-    int beforeScrollPosition;
     int defaultColor;
     int actionBarColor;
     int color;
     boolean fabMainTextVisible;
-    
+    boolean toolbarOverLayed;
     AlphaAnimation mainTextAlphaAnimFadeIn;
     AlphaAnimation mainTextAlphaAnimFadeOut;
-
+    int positionClicked;
     View v;
-
-
+    FrameLayout fabMainText;
+    // OnSlidePanel vas
+    int mColor;
+    boolean expanding = true;
+    boolean takeOneTaken = false;
+    float takeOne;
+    float takeTwo;
+    boolean appTitleShowing = true;
+    float slideOffsetDifference;
+    String appTitle;
+    String expandedTitle;
+    String expandedSubtitle;
+    boolean firstRun = true;
+    Toolbar toolbar;
+    PlayFragment mPlayFragment;
+    MediaPlayer mediaPlayer;
+    boolean statePlaying;
+    boolean toolbarDrawerToggleVisible = true;
     // Methods
     public static FilesListFragment newInstance(int num, Context context) {
 
@@ -89,26 +93,29 @@ public class FilesListFragment extends ColorFragment{
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         mNum = getArguments() != null ? getArguments().getInt("num") : 1;
+        positionClicked = -1;
+        recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+        //new UpdateDataSet().execute();
         setHasOptionsMenu(true);
         //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-        new UpdateDataSet().execute();
         defaultColor = -1;
         fabExpanded = false;
+        toolbarOverLayed = false;
         fabMainTextVisible = true;
         fObserver = new FileObserver(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY) {
             @Override
             public void onEvent(int event, String path) {
                 if(event == FileObserver.CREATE || event == FileObserver.DELETE){
                     //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-                    new UpdateDataSet().execute();
+                    recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
 
                 }
             }
         };
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(Constants.UPDATE_FILE_DATASET));
 
+        super.onCreate(savedInstanceState);
 
     }
 
@@ -120,7 +127,7 @@ public class FilesListFragment extends ColorFragment{
             String message = intent.getStringExtra("action");
             Log.v("broadcast receiver ", "message: " + message);
             //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-            new UpdateDataSet().execute();
+            recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
 
 
         }
@@ -128,11 +135,17 @@ public class FilesListFragment extends ColorFragment{
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+                             final Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_files, container, false);
+
+
+        if(savedInstanceState != null) {
+
+        }
+
         actionBarBackground = mainActivity.getActionBarDrawable();
         actionBarColor = getResources().getColor(R.color.c52);
-        final FrameLayout fabMainText = (FrameLayout) getActivity().findViewById(R.id.fabMainText);
+        fabMainText = (FrameLayout) getActivity().findViewById(R.id.fabMainText);
         final FloatingActionsMenu fabMenu = (FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
         final AddFloatingActionButton fabMain = (AddFloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
         if(!fabMenu.isExpanded()){
@@ -155,20 +168,30 @@ public class FilesListFragment extends ColorFragment{
             @Override
             public void onClick(View v) {
 
-
                 if(!fabMenu.isExpanded()) {
                     fabMainText.setVisibility(View.VISIBLE);
                     fabMainText.startAnimation(mainTextAlphaAnimFadeIn);
                 }
-                boolean expanded = fabMenu.toggle();
+
+                fabExpanded = fabMenu.toggle();
+
                 mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_light));
                 mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+                ObjectAnimator anim1 =  ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 0, 180);
 
-                ObjectAnimator anim =  ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 0, 180);
-                anim.setDuration(200);
-                anim.start();
+                if(!toolbarOverLayed) {
+                    ObjectAnimator anim2 = ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 0, 180);
+                    anim2.setDuration(200);
+                    anim2.start();
+                    toolbarOverLayed = true;
+                }
+
+
+                anim1.setDuration(200);
+                anim1.start();
+
                 //mainActivity.getDimShadowDrop().getForeground().setAlpha(180);
-                if (expanded){
+                if (fabExpanded){
                     ((MainActivity)getActivity()).replaceFragment(new RecordFragment(), R.id.slideUpPanel, false);
                     slidingUpPanelLayout.expandPanel();
                     defaultColor = getResources().getColor(R.color.recordDefaultColor);
@@ -184,21 +207,14 @@ public class FilesListFragment extends ColorFragment{
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(fabMenu.isExpanded()) {
-                    ObjectAnimator anim = ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 180, 0);
-                    anim.setDuration(200);
-                    anim.start();
-
-
-                }
-                if(fabMenu.isExpanded()) {
-                    fabMainText.startAnimation(mainTextAlphaAnimFadeOut);
-                    fabMainText.setVisibility(View.GONE);
+                    hideFabMaintext();
+                    fabExpanded = false;
+                    fabMenu.collapse();
 
                 }
-                fabMenu.collapse();
+
 
                 //mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
-                fabExpanded = false;
 
                 return false;
             }
@@ -206,13 +222,14 @@ public class FilesListFragment extends ColorFragment{
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                positionClicked = position;
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("recording", rAdapter.getItem(position));
+                //bundle.putSerializable("recording", rAdapter.getItem(position));
+
                 bundle.putInt("color", rAdapter.getRowColor(position));
+                bundle.putInt("playItemPosition", position);
 
-                mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_dark));
-
-                PlayFragment mPlayFragment = new PlayFragment();
+                mPlayFragment = new PlayFragment();
 
                 mPlayFragment.setArguments(bundle);
                 ((MainActivity)getActivity()).replaceFragment(mPlayFragment, R.id.slideUpPanel, false);
@@ -223,41 +240,146 @@ public class FilesListFragment extends ColorFragment{
             }
         });
         slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-            int mColor;
+
             @Override
             public void onPanelCollapsed(View panel) {
                 defaultColor = -1;
                 mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+                firstRun = true;
+                if(statePlaying){
+                    mPlayFragment.releaseMediaPlayer();
+                    statePlaying = false;
 
-
+                }
             }
 
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
+                if(!takeOneTaken) {
+                    takeOne = slideOffset;
+                    takeOneTaken = true;
+                }
+                else if(takeOneTaken){
+                    takeTwo = slideOffset;
+                    takeOneTaken = false;
+                    if(takeOne < takeTwo){
+                        expanding = true;
+                        slideOffsetDifference = takeTwo - takeOne + 0.1f;
+                    }
+                    else{
+                        expanding = false;
+                        slideOffsetDifference = takeOne - takeTwo + 0.1f;
+                    }
+                }
+                try{
+                if(firstRun){
+                    if(expanding) {
+                        mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_dark));
+                    }
+                    appTitle = getResources().getString(R.string.app_name);
+                    if(recordingsList.get(positionClicked).getTitleString() != null && positionClicked != -1){
+                        expandedTitle = recordingsList.get(positionClicked).getTitleString();
+                        statePlaying = true;
+                    }
+                    else{
+                        expandedTitle = "Recording";
+                        statePlaying = false;
+
+                    }
+                    if(recordingsList.get(positionClicked).getDateString() != null && positionClicked != -1){
+                        expandedSubtitle = recordingsList.get(positionClicked).getDateString();
+                    }
+                    else{
+                        expandedSubtitle = "";
+                    }
+                    firstRun = false;
+                }
+                }catch (IndexOutOfBoundsException e){
+                    expandedTitle = "Recording";
+                    expandedSubtitle = "";
+                    appTitle = getResources().getString(R.string.app_name);
+                    statePlaying = false;
+
+
+                }
+
+
                 fabMenu.collapse();
+                toolbar = mainActivity.getToolbar();
+                if(toolbarOverLayed){
+                    ObjectAnimator anim2 =  ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 180, 0);
+                    anim2.setDuration(200);
+                    anim2.start();
+                    toolbarOverLayed = false;
+                }
                 if(defaultColor != -1){
                     mColor = defaultColor;
                 }
                 else {
                     mColor = color;
                 }
+                final int midwayBlended = blendColors(mColor, actionBarColor, 0.5f);
                 final int blended = blendColors(mColor, actionBarColor, slideOffset);
+
+
+                if(slideOffset < 0.5f){
+                    if (!toolbarDrawerToggleVisible){
+                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+                        toolbarDrawerToggleVisible = true;
+                    }
+                    toolbar.setTitleTextColor(blendColors(midwayBlended, getResources().getColor(R.color.white), slideOffset * 2));
+                    toolbar.getNavigationIcon().setAlpha(Math.round(255-slideOffset * 2 * 255));
+                    toolbar.getNavigationIcon().invalidateSelf();
+
+                    if(!appTitleShowing && !expanding){
+                        toolbar.setTitle(appTitle);
+                        toolbar.setSubtitle("");
+                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleTheme);
+                        appTitleShowing = true;
+                    }
+
+
+                }
+                else if(slideOffset >= 0.5f){
+                    if (toolbarDrawerToggleVisible){
+                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(false);
+                        toolbarDrawerToggleVisible = false;
+                    }
+                    if(appTitleShowing && expanding){
+                        toolbar.setTitle(expandedTitle);
+                        toolbar.setSubtitle(expandedSubtitle);
+                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleRecordingTheme);
+                        positionClicked = -1;
+                        appTitleShowing = false;
+                    }
+
+                    toolbar.setTitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (slideOffset - 0.5f)*2));
+                    toolbar.setSubtitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (slideOffset - 0.5f)*2));
+                }
+
                 mainActivity.getDimShadowDrop().getForeground().setAlpha(Math.round(slideOffset * 140));
                 actionBarBackground.setColor(blended);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     getActivity().getWindow().setStatusBarColor(MainActivity.darkenColorRGB(blended));
 
                 }
+                if(statePlaying){
+                    mPlayFragment.setVolume(slideOffset );
 
+                }
             }
 
 
             @Override
             public void onPanelExpanded(View panel) {
+
                 //fab.hide(true);
                     fabMainText.setVisibility(View.GONE);
+                //toolbar.getNavigationIcon().setVisible(false, false);
+                if(statePlaying){
+                    mPlayFragment.setVolume(1f);
 
-
+                }
             }
 
             @Override
@@ -294,88 +416,45 @@ public class FilesListFragment extends ColorFragment{
 
     }
 
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
     @Override
     public void onDestroyView() {
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
+        // TODO add saved instance state to save application color.
         super.onDestroy();
     }
 
-
-    public class UpdateDataSet extends AsyncTask<List, String, List> {
-
-        @Override
-        protected List doInBackground(List... params) {
-            getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-            return null;
-
-        }
-
-        @Override
-        protected void onPostExecute(List recordingList) {
-            super.onPostExecute(recordingList);
-            rAdapter.notifyDataSetChanged();
-
-        }
-
-        public void getFiles(String directoryName) {
-            File directory = new File(directoryName);
-            Log.v("FilesListFragment", "getFiles();");
-            if (directory.exists()) {
-                File[] fileList = directory.listFiles();
-
-                    for (File file : fileList) {
-                        if (file.isFile() && !files.contains(file)) {
-                            files.add(file);
-                        }
-                /*
-                else if(file.isDirectory()){
-                    files(file.getAbsoluteFile(), false);
-                }
-                */
-                    }
-                    updateRecordingsList();
-
-            }
-        }
-
-        public void updateRecordingsList(){
-
-            for(int i = 0; i < files.size(); i++) {
-                boolean fileFound = false;
-                for (int j = 0; j < recordingsList.size(); j++) {
-                    if (recordingsList.get(j).getFile().equals(files.get(i))) {
-                        fileFound = true;
-                    }
-                }
-                if(fileFound != true){
-                    recordingsList.add(new Recording(files.get(i), new Date(files.get(i).lastModified())));
-                }
-            }
-            if(rAdapter != null) {
-                Log.i("FileListFragment", "notifyDataSetChanged()");
-            }
-            //Collections.sort(recordingsList);
-
-
-        }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt("color", mColor);
+        outState.putString("title", expandedTitle);
+        outState.putString("subtitle", expandedSubtitle);
+        outState.putInt("positionClicked", positionClicked);
+        super.onSaveInstanceState(outState);
     }
-
 
     @Override
     public int getColor() {
         return FRAGMENT_COLOR;
     }
-    public static int blendColors(int from, int to, float ratio) {
-        int f = from;
-        int t = to;
+    public static int blendColors(int to, int from, float ratio) {
+        int f = to;
+        int t = from;
 
         final float inverseRation = 1f - ratio;
-        final float r = Color.red(from) * ratio + Color.red(to) * inverseRation;
-        final float g = Color.green(from) * ratio + Color.green(to) * inverseRation;
-        final float b = Color.blue(from) * ratio + Color.blue(to) * inverseRation;
+        final float r = Color.red(f) * ratio + Color.red(t) * inverseRation;
+        final float g = Color.green(f) * ratio + Color.green(t) * inverseRation;
+        final float b = Color.blue(f) * ratio + Color.blue(t) * inverseRation;
 
         return Color.rgb((int) r, (int) g, (int) b);
     }
+/*
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -397,9 +476,22 @@ public class FilesListFragment extends ColorFragment{
 
         }
     }
-
+*/
     public void toggleFabMenu(){
         final FrameLayout fabMainText = (FrameLayout) v.findViewById(R.id.fabMainText);
         fabMainText.setVisibility(View.GONE);
     }
+    public void hideFabMaintext(){
+        ObjectAnimator anim = ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 180, 0);
+        ObjectAnimator anim2 =  ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 180, 0);
+
+        anim.setDuration(200);
+        anim.start();
+        anim2.setDuration(200);
+        anim2.start();
+        toolbarOverLayed = false;
+        fabMainText.startAnimation(mainTextAlphaAnimFadeOut);
+        fabMainText.setVisibility(View.GONE);
+    }
+
 }

@@ -4,17 +4,25 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public abstract class RecordingOptionsCalculator {
 
+    static int[] possibleSampleRates = {48000, 44100, 32000, 22050, 16000, 11025, 8000};
 
+    static List<Recording> recordingsList = new ArrayList<Recording>();
+    static List<File> files = new ArrayList<File>();
 
     public static ArrayList getSupportedSampleRates(){
         ExtAudioRecorder result;
-        int[] sampleRates = {48000, 44100, 32000, 22050, 16000, 11025, 8000};
         ArrayList <Integer> suitableSampleRates = new ArrayList<Integer>();
         int i=0;
         do
@@ -22,14 +30,14 @@ public abstract class RecordingOptionsCalculator {
 
             result = new ExtAudioRecorder(	true,
                     MediaRecorder.AudioSource.MIC,
-                    sampleRates[i],
+                    possibleSampleRates[i],
                     AudioFormat.CHANNEL_IN_MONO,
                     AudioFormat.ENCODING_PCM_16BIT);
 
             if((result.getState() == ExtAudioRecorder.State.INITIALIZING)){
-                suitableSampleRates.add(sampleRates[i]);
+                suitableSampleRates.add(possibleSampleRates[i]);
             }
-        } while(++i < sampleRates.length);
+        } while(++i < possibleSampleRates.length);
         return suitableSampleRates;
     }
     public static ArrayList getSupportedSampleRateStrings(){
@@ -40,6 +48,37 @@ public abstract class RecordingOptionsCalculator {
         }
         return suitableSampleRateStrings;
     }
+    public static ArrayList getSupportedSampleRateDescriptions(){
+        ArrayList <String> sampleRateDescriptions = new ArrayList<String>();
+        ArrayList <Integer> sampleRates = getSupportedSampleRates();
+        for (Integer temp: sampleRates){
+            switch (temp){
+                case 48000:
+                    sampleRateDescriptions.add("Professional quality (48 kHz)");
+                    break;
+                case 44100:
+                    sampleRateDescriptions.add("Audio CD quality (44 kHz)");
+                    break;
+                case 32000:
+                    sampleRateDescriptions.add("FM Radio quality (32 kHz)");
+                    break;
+                case 22050:
+                    sampleRateDescriptions.add("AM Radio quality (22 kHz)");
+                    break;
+                case 16000:
+                    sampleRateDescriptions.add("VoIP quality (16 kHz)");
+                    break;
+                case 11025:
+                    sampleRateDescriptions.add("Lower quality (11 kHz)");
+                    break;
+                case 8000:
+                    sampleRateDescriptions.add("Telephone quality (8 kHz)");
+                    break;
+            }
+        }
+        return sampleRateDescriptions;
+    }
+
     public static int getHighestSampleRate(){
         ArrayList<Integer> sampleRates = getSupportedSampleRates();
 
@@ -57,6 +96,30 @@ public abstract class RecordingOptionsCalculator {
         }
         else
             return -1;
+    }
+
+    public static int getDefaultSampleRate(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String result = sharedPreferences.getString("pref_sampleRates", "");
+        if(result != "" && result != null){
+            return Integer.parseInt(result);
+        }
+        else{
+            return getHighestSampleRate();
+        }
+
+    }
+
+    public static int getDefaultChannels(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String result = sharedPreferences.getString("pref_sampleRates", "");
+        if(result != "" && result != null){
+            return Integer.parseInt(result);
+        }
+        else{
+            return getHighestSampleRate();
+        }
+
     }
 
     public static ArrayList getSupportedChannels(){
@@ -99,15 +162,67 @@ public abstract class RecordingOptionsCalculator {
         else
             return -1;
     }
-    public static void writeDeviceSupportedOptionsToDiskInt(Context context, String key, int datum){
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.recording_options_file_key), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(key, datum);
-    }
-    public static void writeDeviceSupportedOptionsToDiskString(Context context, String key, String datum){
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.recording_options_file_key), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(key, datum);
-    }
 
+    public static List getFiles(String directoryNamearg) {
+        final String directoryName = directoryNamearg;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File directory = new File(directoryName);
+                Log.v("FilesListFragment", "getFiles();");
+                if (directory.exists()) {
+                    File[] fileList = directory.listFiles();
+
+                    for (File file : fileList) {
+                        if (file.isFile() && !files.contains(file)) {
+                            files.add(file);
+                        }
+                /*
+                else if(file.isDirectory()){
+                    files(file.getAbsoluteFile(), false);
+                }
+                */
+                    }
+                    recordingsList = updateRecordingsList();
+
+                }
+            }
+        }).start();
+
+        return recordingsList;
+    }
+    public static List getExistingFiles(String directoryNamearg) {
+        final String directoryName = directoryNamearg;
+        if(recordingsList != null){
+            return recordingsList;
+        }
+        else{
+            return getFiles(directoryNamearg);
+        }
+
+    }
+    public static List updateRecordingsList(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < files.size(); i++) {
+                    boolean fileFound = false;
+                    for (int j = 0; j < recordingsList.size(); j++) {
+                        if (recordingsList.get(j).getFile().equals(files.get(i))) {
+                            fileFound = true;
+                        }
+                    }
+                    if(fileFound != true){
+                        recordingsList.add(new Recording(files.get(i), new Date(files.get(i).lastModified())));
+                    }
+                }
+
+                //Collections.sort(recordingsList);
+            }
+        }).start();
+
+
+        return recordingsList;
+    }
 }
+

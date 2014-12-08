@@ -42,6 +42,7 @@
 
 
     <color name="recordDefaultColor">#F44336</color>
+    <color name="transparent">#00FFFFFF</color>
 
 
     <!-- end material colors -->

@@ -1,9 +1,17 @@
 package com.bacon.corey.audiotimeshift;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.PorterDuff;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.IBinder;
+import android.os.Messenger;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,16 +20,25 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+
 import libs.CircleButton;
 
 public class PlayFragment extends Fragment {
     Bundle bundle;
     Recording recording;
     Boolean clicked = new Boolean(false);
-
+    int recPosition;
+    Intent playIntent;
     private OnFragmentInteractionListener mListener;
-
-
+    boolean mBound;
+    int currentFilePosition;
+    PlayService playService;
+    List <Recording> recordingsList = new ArrayList<Recording>();
+    boolean playButtonShowing = false;
     // TODO: Rename and change types and number of parameters
     public static PlayFragment newInstance() {
         PlayFragment fragment = new PlayFragment();
@@ -36,11 +53,36 @@ public class PlayFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         bundle = getArguments();
+        recordingsList = RecordingOptionsCalculator.getExistingFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
         if(bundle != null) {
+            recPosition = bundle.getInt("playItemPosition");
+            currentFilePosition = recPosition;
+            //recording = (Recording) bundle.getSerializable("recording");
+            recording = recordingsList.get(recPosition);
 
-            recording = (Recording) bundle.getSerializable("recording");
         }
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        playIntent = new Intent(getActivity(), PlayService.class);
+        playIntent.putExtra("action", Constants.PLAY);
+        playIntent.putExtra("playItemPosition", recPosition);
+        playIntent.putExtra("playItem", recording);
+        getActivity().bindService(playIntent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mBound) {
+            getActivity().unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     @Override
@@ -55,6 +97,10 @@ public class PlayFragment extends Fragment {
         final CircleButton deleteButton = (CircleButton) view.findViewById(R.id.deleteButton);
         final CircleButton waveToggleButton = (CircleButton) view.findViewById(R.id.waveToggleButton);
         final int color = bundle.getInt("color");
+
+
+
+
         if(bundle != null) {
             playButton.setDefaultColor(color);
         }
@@ -109,6 +155,29 @@ public class PlayFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
+                try {
+                    playService.getMediaPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mp) {
+                            if((Boolean)playButton.getTag() == false) {
+                                playButtonShowing = true;
+                                playButton.setImageResource(R.drawable.ic_play);
+                                playButton.setTag(new Boolean(true));
+                            }
+                        }
+                    });
+
+                    if (!playService.getMediaPlayer().isPlaying()) {
+                        playService.getMediaPlayer().start();
+
+                    } else if (playService.getMediaPlayer().isPlaying()) {
+                        playService.getMediaPlayer().pause();
+                    }
+
+                }catch (IllegalStateException e){
+                    playService.getMediaPlayer().release();
+                }
+
                 start.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
@@ -118,12 +187,15 @@ public class PlayFragment extends Fragment {
                     @Override
                     public void onAnimationEnd(Animation animation) {
                         if((Boolean)playButton.getTag() == false) {
-                            playButton.setImageResource(R.drawable.ic_pause);
+                            playButtonShowing = true;
+                            playButton.setImageResource(R.drawable.ic_play);
                             playButton.setTag(new Boolean(true));
                         }
                         else if((Boolean)playButton.getTag() == true) {
-                            playButton.setImageResource(R.drawable.ic_play);
+                            playButtonShowing = false;
+                            playButton.setImageResource(R.drawable.ic_pause);
                             playButton.setTag(new Boolean(false));
+
                         }
                         playButton.startAnimation(end);
                     }
@@ -133,15 +205,33 @@ public class PlayFragment extends Fragment {
 
                     }
                 });
-
-
                 playButton.startAnimation(start);
 
             }
         });
 
+        forwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                releaseMediaPlayer();
+                if(mBound && ++currentFilePosition < recordingsList.size()) {
+
+                    playService.playNewFile(currentFilePosition, recordingsList.get(currentFilePosition));
+                }
 
 
+            }
+        });
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                releaseMediaPlayer();
+                if(mBound && currentFilePosition-- > 0) {
+
+                    playService.playNewFile(currentFilePosition, recordingsList.get(currentFilePosition));
+                }
+            }
+        });
         return view;
     }
 
@@ -185,4 +275,43 @@ public class PlayFragment extends Fragment {
         public void onFragmentInteraction(Uri uri);
     }
 
+    public Intent getPlayIntent(){
+        return playIntent;
+
+    }
+
+    public ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            PlayService.LocalBinder binder = (PlayService.LocalBinder) service;
+            playService = binder.getService();
+            playService.playNewFile(recPosition, recording);
+
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+    public void setVolume (float volume){
+        try {
+            playService.getMediaPlayer().setVolume(volume, volume);
+        }catch (Exception e){
+
+        }
+    }
+    public void releaseMediaPlayer (){
+        try {
+            playService.getMediaPlayer().release();
+        }catch (Exception e){
+
+        }
+    }
 }
+
