@@ -39,7 +39,7 @@ public class MainActivity extends ActionBarActivity implements PlayFragment.OnFr
     DrawerLayout drawerLayout;
     Toolbar toolbar;
     FilesListFragment fileListFragment;
-
+    Fragment currentFragment;
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -57,6 +57,7 @@ public class MainActivity extends ActionBarActivity implements PlayFragment.OnFr
         // Action bar setup
         toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.draw_open, R.string.draw_closed);
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
@@ -67,6 +68,9 @@ public class MainActivity extends ActionBarActivity implements PlayFragment.OnFr
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         actionBarDrawerToggle.syncState();
         toolbar.setSubtitleTextAppearance(this, R.style.SubTitleRecordingTheme);
+        final FloatingActionButton fabMain = (FloatingActionButton)findViewById(R.id.fab_expand_menu_button);
+
+        fabMain.setIconDrawable(R.drawable.ic_content_new);
 
         fabMenu = (FloatingActionsMenu)findViewById(R.id.fabMenu);
         dimShadowDrop = (FrameLayout) findViewById(R.id.recordingListMainLayout);
@@ -247,6 +251,16 @@ public class MainActivity extends ActionBarActivity implements PlayFragment.OnFr
         }
         transaction.commit();
     }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+        currentFragment = fragment;
+    }
+
+    public Fragment getCurrentSlidePanelFragment(){
+        return currentFragment;
+    }
     public ColorDrawable getActionBarDrawable(){
         return actionBarBackground;
     }
@@ -287,5 +301,25 @@ public class MainActivity extends ActionBarActivity implements PlayFragment.OnFr
         actionBarDrawerToggle.setDrawerIndicatorEnabled(enabled);
 
     }
+    public static int blendColors(int to, int from, float ratio) {
+        int f = to;
+        int t = from;
 
+        final float inverseRation = 1f - ratio;
+        final float r = Color.red(f) * ratio + Color.red(t) * inverseRation;
+        final float g = Color.green(f) * ratio + Color.green(t) * inverseRation;
+        final float b = Color.blue(f) * ratio + Color.blue(t) * inverseRation;
+
+        return Color.rgb((int) r, (int) g, (int) b);
+    }
+    public  RecordingListAdapter getListAdapter(){
+
+    return fileListFragment.rAdapter;
+    }
+    public void setActionbarColorRef(int color){
+        fileListFragment.setActionBarColorRef(color);
+    }
+    public SlidingUpPanelLayout getSlidingUpPanelLayout(){
+        return slidingUpPanelLayout;
+    }
 }

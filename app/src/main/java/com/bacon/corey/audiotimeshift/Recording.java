@@ -1,5 +1,6 @@
 package com.bacon.corey.audiotimeshift;
 
+import android.media.MediaPlayer;
 import android.util.Log;
 import java.io.File;
 import java.io.IOException;
@@ -149,12 +150,17 @@ public class Recording implements Comparable<Recording>, Serializable {
     public long getAudioLengthInSeconds() {
         long audioLength;
         try {
-            audioLength = (getFileSize() - 44) / getByteRate();
+            long fSize = getFileSize();
+            long fBR = getByteRate();
+            audioLength = (fSize - 44) / fBR;
+
             if (audioLength != 0) {
                 return audioLength;
 
             } else {
-                return -1;
+
+                    return -1;
+
             }
         }
          catch (ArithmeticException e) {
@@ -163,5 +169,66 @@ public class Recording implements Comparable<Recording>, Serializable {
          }
 
     }
+    public int getAudioLengthInBestFormat(){
+        long recordingLen = getAudioLengthInSeconds();
+        if (recordingLen < 60){
+            return (int) Math.round((double) recordingLen);
+        }
+        else if (recordingLen >= 60 && recordingLen < 3600){
+            return (int) Math.round((double) recordingLen)/60;
+
+        }
+        else if (recordingLen >= 3600){
+            return (int) Math.round((double) recordingLen)/3600;
+
+        }
+        else{
+            return -1;
+        }
+    }
+    public String getAudioLengthInHMSFormat(){
+        long recordingLen = getAudioLengthInSeconds();
+        long timeUnParsed = recordingLen;
+        int hours = 0;
+        int mins = 0;
+        int secs = 0;
+        String hoursString = "";
+        String minsString = "";
+        String secString = "";
+
+        String formattedString;
+        while(timeUnParsed > 0){
+            if(timeUnParsed >= 3600){
+                while(timeUnParsed >= 3600){
+                    hours++;
+                    timeUnParsed = timeUnParsed - 3600;
+                }
+            }
+            else if(timeUnParsed >= 60 && timeUnParsed < 3600){
+                while(timeUnParsed >= 60){
+                    mins++;
+                    timeUnParsed = timeUnParsed - 60;
+                }
+            }
+            else if(timeUnParsed < 60){
+                    secs = secs + (int)timeUnParsed;
+                    timeUnParsed = 0;
+                }
+        }
+        if(hours != 0){
+            hoursString = Integer.toString(hours) + ":";
+        }
+        minsString = Integer.toString(mins);
+        secString = Integer.toString(secs);
+        if(secString.length() < 2){
+            secString = "0" + secs;
+        }
+
+
+        formattedString = hoursString + minsString + ":" + secString;
+
+        return formattedString;
+    }
+
 }
 

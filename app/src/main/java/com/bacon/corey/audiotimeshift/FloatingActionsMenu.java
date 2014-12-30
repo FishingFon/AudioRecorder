@@ -1,4 +1,5 @@
 package com.bacon.corey.audiotimeshift;
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -16,7 +17,6 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
-import android.widget.FrameLayout;
 
 
 public class FloatingActionsMenu extends ViewGroup {
@@ -25,9 +25,9 @@ public class FloatingActionsMenu extends ViewGroup {
     public static final int EXPAND_LEFT = 2;
     public static final int EXPAND_RIGHT = 3;
 
-    private static final int ANIMATION_DURATION = 400;
+    private static final int ANIMATION_DURATION = 500;
     private static final float COLLAPSED_PLUS_ROTATION = 0f;
-    private static final float EXPANDED_PLUS_ROTATION = 90f + 45f;
+    private static final float EXPANDED_PLUS_ROTATION = 45f + 90f;
 
     private int mAddButtonPlusColor;
     private int mAddButtonColorNormal;
@@ -41,7 +41,7 @@ public class FloatingActionsMenu extends ViewGroup {
 
     private AnimatorSet mExpandAnimation = new AnimatorSet().setDuration(ANIMATION_DURATION);
     private AnimatorSet mCollapseAnimation = new AnimatorSet().setDuration(ANIMATION_DURATION);
-    private AddFloatingActionButton mAddButton;
+    private FloatingActionButton mAddButton;
     private RotatingDrawable mRotatingDrawable;
 
     public FloatingActionsMenu(Context context) {
@@ -113,11 +113,11 @@ public class FloatingActionsMenu extends ViewGroup {
     }
 
     private void createAddButton(final Context context) {
-        mAddButton = new AddFloatingActionButton(context) {
+        mAddButton = new FloatingActionButton(context) {
+
 
             @Override
             void updateBackground() {
-                mPlusColor = mAddButtonPlusColor;
                 mColorNormal = mAddButtonColorNormal;
                 mColorPressed = mAddButtonColorPressed;
                 super.updateBackground();
@@ -137,6 +137,7 @@ public class FloatingActionsMenu extends ViewGroup {
                 expandAnimator.setInterpolator(interpolator);
 
                 mExpandAnimation.play(expandAnimator);
+
                 mCollapseAnimation.play(collapseAnimator);
 
                 return rotatingDrawable;
@@ -422,9 +423,13 @@ public class FloatingActionsMenu extends ViewGroup {
 
     public void collapse() {
         if (mExpanded) {
+            mAddButton.setIconDrawable(R.drawable.ic_content_new);
+
+
             mExpanded = false;
             mCollapseAnimation.start();
             mExpandAnimation.cancel();
+
         }
     }
 
@@ -441,9 +446,12 @@ public class FloatingActionsMenu extends ViewGroup {
 
     public void expand() {
         if (!mExpanded) {
+            mAddButton.setIconDrawable(R.drawable.quick_record_mic_icon_rotated);
+
             mExpanded = true;
             mCollapseAnimation.cancel();
             mExpandAnimation.start();
+
         }
     }
 

@@ -3,6 +3,7 @@ package com.bacon.corey.audiotimeshift;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,22 +31,22 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class FilesListFragment extends ColorFragment{
+public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragment {
     public static int FRAGMENT_COLOR;
-    List<Recording> recordingsList = new ArrayList<Recording>();
-    List<File> files = new ArrayList<File>();
+    List<com.bacon.corey.audiotimeshift.Recording> recordingsList = new ArrayList<com.bacon.corey.audiotimeshift.Recording>();
     RecordingListAdapter rAdapter;
     int mNum;
     ColorDrawable actionBarBackground;
     FileObserver fObserver;
     ListView listView;
-    MainActivity mainActivity;
+    com.bacon.corey.audiotimeshift.MainActivity mainActivity;
     boolean fabExpanded;
-    SlidingUpPanelLayout slidingUpPanelLayout;
+    com.bacon.corey.audiotimeshift.SlidingUpPanelLayout slidingUpPanelLayout;
     int defaultColor;
     int actionBarColor;
     int color;
@@ -55,7 +57,6 @@ public class FilesListFragment extends ColorFragment{
     int positionClicked;
     View v;
     FrameLayout fabMainText;
-    // OnSlidePanel vas
     int mColor;
     boolean expanding = true;
     boolean takeOneTaken = false;
@@ -68,8 +69,7 @@ public class FilesListFragment extends ColorFragment{
     String expandedSubtitle;
     boolean firstRun = true;
     Toolbar toolbar;
-    PlayFragment mPlayFragment;
-    MediaPlayer mediaPlayer;
+    com.bacon.corey.audiotimeshift.PlayFragment mPlayFragment;
     boolean statePlaying;
     boolean toolbarDrawerToggleVisible = true;
     // Methods
@@ -88,14 +88,14 @@ public class FilesListFragment extends ColorFragment{
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mainActivity = (MainActivity)activity;
+        mainActivity = (com.bacon.corey.audiotimeshift.MainActivity)activity;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         mNum = getArguments() != null ? getArguments().getInt("num") : 1;
         positionClicked = -1;
-        recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+        recordingsList = com.bacon.corey.audiotimeshift.RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + com.bacon.corey.audiotimeshift.Constants.DIRECTORY);
         //new UpdateDataSet().execute();
         setHasOptionsMenu(true);
         //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
@@ -103,17 +103,17 @@ public class FilesListFragment extends ColorFragment{
         fabExpanded = false;
         toolbarOverLayed = false;
         fabMainTextVisible = true;
-        fObserver = new FileObserver(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY) {
+        fObserver = new FileObserver(Environment.getExternalStorageDirectory() + File.separator + com.bacon.corey.audiotimeshift.Constants.DIRECTORY) {
             @Override
             public void onEvent(int event, String path) {
                 if(event == FileObserver.CREATE || event == FileObserver.DELETE){
                     //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-                    recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+                    recordingsList = com.bacon.corey.audiotimeshift.RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + com.bacon.corey.audiotimeshift.Constants.DIRECTORY);
 
                 }
             }
         };
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(Constants.UPDATE_FILE_DATASET));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(com.bacon.corey.audiotimeshift.Constants.UPDATE_FILE_DATASET));
 
         super.onCreate(savedInstanceState);
 
@@ -127,7 +127,7 @@ public class FilesListFragment extends ColorFragment{
             String message = intent.getStringExtra("action");
             Log.v("broadcast receiver ", "message: " + message);
             //getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
-            recordingsList = RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + Constants.DIRECTORY);
+            recordingsList = com.bacon.corey.audiotimeshift.RecordingOptionsCalculator.getFiles(Environment.getExternalStorageDirectory() + File.separator + com.bacon.corey.audiotimeshift.Constants.DIRECTORY);
 
 
         }
@@ -146,8 +146,9 @@ public class FilesListFragment extends ColorFragment{
         actionBarBackground = mainActivity.getActionBarDrawable();
         actionBarColor = getResources().getColor(R.color.c52);
         fabMainText = (FrameLayout) getActivity().findViewById(R.id.fabMainText);
-        final FloatingActionsMenu fabMenu = (FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
-        final AddFloatingActionButton fabMain = (AddFloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
+        final com.bacon.corey.audiotimeshift.FloatingActionsMenu fabMenu = (com.bacon.corey.audiotimeshift.FloatingActionsMenu)getActivity().findViewById(R.id.fabMenu);
+        final com.bacon.corey.audiotimeshift.FloatingActionButton fabMain = (com.bacon.corey.audiotimeshift.FloatingActionButton)getActivity().findViewById(R.id.fab_expand_menu_button);
+
         if(!fabMenu.isExpanded()){
             fabMainText.setVisibility(View.GONE);
         }
@@ -157,9 +158,9 @@ public class FilesListFragment extends ColorFragment{
         mainTextAlphaAnimFadeOut.setDuration(200);
 
         //fab = mainActivity.getFab();
-        slidingUpPanelLayout = (SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
+        slidingUpPanelLayout = (com.bacon.corey.audiotimeshift.SlidingUpPanelLayout) getActivity().findViewById(R.id.sliding_layout);
         listView = (ListView) v.findViewById(R.id.recordingListView);
-        rAdapter = new RecordingListAdapter(getActivity(), R.layout.row_layout, recordingsList);
+        rAdapter = new com.bacon.corey.audiotimeshift.RecordingListAdapter(getActivity(), R.layout.row_layout, recordingsList);
         listView.setAdapter(rAdapter);
         rAdapter.notifyDataSetChanged();
         // Add onclick events to fab menu buttons
@@ -168,36 +169,49 @@ public class FilesListFragment extends ColorFragment{
             @Override
             public void onClick(View v) {
 
-                if(!fabMenu.isExpanded()) {
-                    fabMainText.setVisibility(View.VISIBLE);
-                    fabMainText.startAnimation(mainTextAlphaAnimFadeIn);
-                }
+                final Handler handler = new Handler();
 
-                fabExpanded = fabMenu.toggle();
+                (new Thread(){
+                    @Override
+                    public void run(){
 
-                mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_light));
-                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
-                ObjectAnimator anim1 =  ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 0, 180);
+                        handler.post(new Runnable(){
+                            public void run() {
+                                if(!fabMenu.isExpanded()) {
+                                    fabMainText.setVisibility(View.VISIBLE);
+                                    fabMainText.startAnimation(mainTextAlphaAnimFadeIn);
+                                }
 
-                if(!toolbarOverLayed) {
-                    ObjectAnimator anim2 = ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 0, 180);
-                    anim2.setDuration(200);
-                    anim2.start();
-                    toolbarOverLayed = true;
-                }
+                                fabExpanded = fabMenu.toggle();
 
+                                mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_light));
+                                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+                                ObjectAnimator anim1 =  ObjectAnimator.ofInt(mainActivity.getDimShadowDrop().getForeground(), "alpha", 0, 180);
 
-                anim1.setDuration(200);
-                anim1.start();
-
-                //mainActivity.getDimShadowDrop().getForeground().setAlpha(180);
-                if (fabExpanded){
-                    ((MainActivity)getActivity()).replaceFragment(new RecordFragment(), R.id.slideUpPanel, false);
-                    slidingUpPanelLayout.expandPanel();
-                    defaultColor = getResources().getColor(R.color.recordDefaultColor);
+                                if(!toolbarOverLayed) {
+                                    ObjectAnimator anim2 = ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 0, 180);
+                                    anim2.setDuration(200);
+                                    anim2.start();
+                                    toolbarOverLayed = true;
+                                }
 
 
-                }
+                                anim1.setDuration(200);
+                                anim1.start();
+
+                                //mainActivity.getDimShadowDrop().getForeground().setAlpha(180);
+                                if (fabExpanded){
+                                    ((com.bacon.corey.audiotimeshift.MainActivity)getActivity()).replaceFragment(new com.bacon.corey.audiotimeshift.RecordFragment(), R.id.slideUpPanel, false);
+                                    //slidingUpPanelLayout.expandPanel();
+                                    defaultColor = getResources().getColor(R.color.recordDefaultColor);
+
+
+                                }
+                            }
+                        });
+                    }
+                }).start();
+
 
 
             }
@@ -206,180 +220,268 @@ public class FilesListFragment extends ColorFragment{
         listView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(fabMenu.isExpanded()) {
+                final MotionEvent e = event;
+
+                if(fabMenu.isExpanded() && e.getAction() == MotionEvent.ACTION_UP) {
                     hideFabMaintext();
                     fabExpanded = false;
                     fabMenu.collapse();
 
                 }
+                else if(!fabMenu.isExpanded()){
+                    return false;
+                }
+
+
+
 
 
                 //mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
 
-                return false;
+                return true;
             }
         });
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                positionClicked = position;
-                Bundle bundle = new Bundle();
-                //bundle.putSerializable("recording", rAdapter.getItem(position));
 
-                bundle.putInt("color", rAdapter.getRowColor(position));
-                bundle.putInt("playItemPosition", position);
+                final int pos = position;
+                final Handler handler = new Handler();
 
-                mPlayFragment = new PlayFragment();
+                (new Thread(){
+                    @Override
+                    public void run(){
 
-                mPlayFragment.setArguments(bundle);
-                ((MainActivity)getActivity()).replaceFragment(mPlayFragment, R.id.slideUpPanel, false);
+                        handler.post(new Runnable(){
+                            public void run() {
+                                positionClicked = pos;
+                                Bundle bundle = new Bundle();
+                                //bundle.putSerializable("recording", rAdapter.getItem(position));
 
-                color = rAdapter.getRowColor(position);
+                                bundle.putInt("color", rAdapter.getRowColor(pos));
+                                bundle.putInt("playItemPosition", pos);
+                                mPlayFragment = new com.bacon.corey.audiotimeshift.PlayFragment(){
+                                    @Override
+                                    public void onResume() {
+                                        final Handler handler = new Handler();
 
-                slidingUpPanelLayout.expandPanel();
+                                        (new Thread(){
+                                            @Override
+                                            public void run(){
+                                                try{ sleep(100); }
+                                                catch(InterruptedException e){}
+                                                handler.post(new Runnable(){
+                                                    public void run() {
+                                                        slidingUpPanelLayout.expandPanel();
+
+                                                    }
+                                                });
+
+                                            }
+                                        }).start();
+                                        super.onResume();
+
+                                    }
+                                };
+                                mPlayFragment.setArguments(bundle);
+                                ((com.bacon.corey.audiotimeshift.MainActivity)getActivity()).replaceFragment(mPlayFragment, R.id.slideUpPanel, false);
+
+
+                                color = rAdapter.getRowColor(pos);
+
+
+                            }
+                        });
+                    }
+                }).start();
+
+
             }
         });
-        slidingUpPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+        slidingUpPanelLayout.setPanelSlideListener(new com.bacon.corey.audiotimeshift.SlidingUpPanelLayout.PanelSlideListener() {
 
             @Override
             public void onPanelCollapsed(View panel) {
-                defaultColor = -1;
-                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
-                firstRun = true;
-                if(statePlaying){
-                    mPlayFragment.releaseMediaPlayer();
-                    statePlaying = false;
 
-                }
+                final Handler handler = new Handler();
+
+                (new Thread(){
+                    @Override
+                    public void run(){
+
+                        handler.post(new Runnable(){
+                            public void run() {
+                                defaultColor = -1;
+                                mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
+                                firstRun = true;
+                                if(statePlaying){
+                                    mPlayFragment.releaseMediaPlayer();
+                                    statePlaying = false;
+
+                                }
+                            }
+                        });
+                    }
+                }).start();
+
             }
 
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                if(!takeOneTaken) {
-                    takeOne = slideOffset;
-                    takeOneTaken = true;
-                }
-                else if(takeOneTaken){
-                    takeTwo = slideOffset;
-                    takeOneTaken = false;
-                    if(takeOne < takeTwo){
-                        expanding = true;
-                        slideOffsetDifference = takeTwo - takeOne + 0.1f;
+
+                final float sOffset = slideOffset;
+                final Handler handler = new Handler();
+
+                (new Thread(){
+                    @Override
+                    public void run(){
+
+                        handler.post(new Runnable(){
+                            public void run() {
+                                if(!takeOneTaken) {
+                                    takeOne = sOffset;
+                                    takeOneTaken = true;
+                                }
+                                else if(takeOneTaken){
+                                    takeTwo = sOffset;
+                                    takeOneTaken = false;
+                                    if(takeOne < takeTwo){
+                                        expanding = true;
+                                        slideOffsetDifference = takeTwo - takeOne;
+
+                                    }
+                                    else{
+                                        expanding = false;
+                                        slideOffsetDifference = takeOne - takeTwo;
+                                    }
+                                }
+                                try{
+                                    if(firstRun){
+                                        if(expanding) {
+                                            mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_dark));
+                                        }
+                                        appTitle = getResources().getString(R.string.app_name);
+                                        if(recordingsList.get(positionClicked).getTitleString() != null && positionClicked != -1){
+                                            expandedTitle = recordingsList.get(positionClicked).getTitleString();
+                                            statePlaying = true;
+                                        }
+                                        else{
+                                            expandedTitle = "Recording";
+                                            statePlaying = false;
+
+                                        }
+                                        if(recordingsList.get(positionClicked).getDateString() != null && positionClicked != -1){
+                                            expandedSubtitle = recordingsList.get(positionClicked).getDateString();
+                                        }
+                                        else{
+                                            expandedSubtitle = "";
+                                        }
+                                        firstRun = false;
+                                    }
+                                }catch (IndexOutOfBoundsException e){
+                                    expandedTitle = "Recording";
+                                    expandedSubtitle = "";
+                                    appTitle = getResources().getString(R.string.app_name);
+                                    statePlaying = false;
+
+
+                                }
+
+
+                                fabMenu.collapse();
+                                toolbar = mainActivity.getToolbar();
+                                if(toolbarOverLayed){
+                                    ObjectAnimator anim2 =  ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 180, 0);
+                                    anim2.setDuration(200);
+                                    anim2.start();
+                                    toolbarOverLayed = false;
+                                }
+                                if(defaultColor != -1){
+                                    mColor = defaultColor;
+                                }
+                                else {
+                                    mColor = color;
+                                }
+                                final int midwayBlended = blendColors(mColor, actionBarColor, 0.5f);
+                                final int blended = blendColors(mColor, actionBarColor, sOffset);
+
+
+                                if(sOffset < 0.5f){
+                                    if (!toolbarDrawerToggleVisible){
+                                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+                                        toolbarDrawerToggleVisible = true;
+                                    }
+                                    toolbar.setTitleTextColor(blendColors(midwayBlended, getResources().getColor(R.color.white), sOffset * 2));
+                                    toolbar.getNavigationIcon().setAlpha(Math.round(255 - sOffset * 2 * 255));
+                                    toolbar.getNavigationIcon().invalidateSelf();
+
+                                    if(!appTitleShowing && !expanding){
+                                        toolbar.setTitle(appTitle);
+                                        toolbar.setSubtitle("");
+                                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleTheme);
+                                        appTitleShowing = true;
+                                    }
+
+
+                                }
+                                else if(sOffset >= 0.5f){
+                                    if (toolbarDrawerToggleVisible){
+                                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(false);
+                                        toolbarDrawerToggleVisible = false;
+                                    }
+                                    if(appTitleShowing && expanding){
+                                        toolbar.setTitle(expandedTitle);
+                                        toolbar.setSubtitle(expandedSubtitle);
+                                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleRecordingTheme);
+                                        positionClicked = -1;
+                                        appTitleShowing = false;
+                                    }
+
+                                    toolbar.setTitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (sOffset - 0.5f)*2));
+                                    toolbar.setSubtitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (sOffset - 0.5f)*2));
+                                }
+
+                                mainActivity.getDimShadowDrop().getForeground().setAlpha(Math.round(sOffset * 140));
+                                actionBarBackground.setColor(blended);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    getActivity().getWindow().setStatusBarColor(com.bacon.corey.audiotimeshift.MainActivity.darkenColorRGB(blended));
+
+                                }
+                                if(statePlaying){
+                                    mPlayFragment.setVolume(sOffset );
+
+                                }
+                            }
+                        });
                     }
-                    else{
-                        expanding = false;
-                        slideOffsetDifference = takeOne - takeTwo + 0.1f;
-                    }
-                }
-                try{
-                if(firstRun){
-                    if(expanding) {
-                        mainActivity.getDimShadowDrop().setForeground(getResources().getDrawable(R.drawable.dim_shadow_shape_dark));
-                    }
-                    appTitle = getResources().getString(R.string.app_name);
-                    if(recordingsList.get(positionClicked).getTitleString() != null && positionClicked != -1){
-                        expandedTitle = recordingsList.get(positionClicked).getTitleString();
-                        statePlaying = true;
-                    }
-                    else{
-                        expandedTitle = "Recording";
-                        statePlaying = false;
+                }).start();
 
-                    }
-                    if(recordingsList.get(positionClicked).getDateString() != null && positionClicked != -1){
-                        expandedSubtitle = recordingsList.get(positionClicked).getDateString();
-                    }
-                    else{
-                        expandedSubtitle = "";
-                    }
-                    firstRun = false;
-                }
-                }catch (IndexOutOfBoundsException e){
-                    expandedTitle = "Recording";
-                    expandedSubtitle = "";
-                    appTitle = getResources().getString(R.string.app_name);
-                    statePlaying = false;
-
-
-                }
-
-
-                fabMenu.collapse();
-                toolbar = mainActivity.getToolbar();
-                if(toolbarOverLayed){
-                    ObjectAnimator anim2 =  ObjectAnimator.ofInt(mainActivity.getToolbarDimShadowDrop().getForeground(), "alpha", 180, 0);
-                    anim2.setDuration(200);
-                    anim2.start();
-                    toolbarOverLayed = false;
-                }
-                if(defaultColor != -1){
-                    mColor = defaultColor;
-                }
-                else {
-                    mColor = color;
-                }
-                final int midwayBlended = blendColors(mColor, actionBarColor, 0.5f);
-                final int blended = blendColors(mColor, actionBarColor, slideOffset);
-
-
-                if(slideOffset < 0.5f){
-                    if (!toolbarDrawerToggleVisible){
-                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
-                        toolbarDrawerToggleVisible = true;
-                    }
-                    toolbar.setTitleTextColor(blendColors(midwayBlended, getResources().getColor(R.color.white), slideOffset * 2));
-                    toolbar.getNavigationIcon().setAlpha(Math.round(255-slideOffset * 2 * 255));
-                    toolbar.getNavigationIcon().invalidateSelf();
-
-                    if(!appTitleShowing && !expanding){
-                        toolbar.setTitle(appTitle);
-                        toolbar.setSubtitle("");
-                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleTheme);
-                        appTitleShowing = true;
-                    }
-
-
-                }
-                else if(slideOffset >= 0.5f){
-                    if (toolbarDrawerToggleVisible){
-                        mainActivity.getActionBarDrawerToggle().setDrawerIndicatorEnabled(false);
-                        toolbarDrawerToggleVisible = false;
-                    }
-                    if(appTitleShowing && expanding){
-                        toolbar.setTitle(expandedTitle);
-                        toolbar.setSubtitle(expandedSubtitle);
-                        toolbar.setTitleTextAppearance(getActivity(), R.style.TitleRecordingTheme);
-                        positionClicked = -1;
-                        appTitleShowing = false;
-                    }
-
-                    toolbar.setTitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (slideOffset - 0.5f)*2));
-                    toolbar.setSubtitleTextColor(blendColors(getResources().getColor(R.color.white), midwayBlended, (slideOffset - 0.5f)*2));
-                }
-
-                mainActivity.getDimShadowDrop().getForeground().setAlpha(Math.round(slideOffset * 140));
-                actionBarBackground.setColor(blended);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    getActivity().getWindow().setStatusBarColor(MainActivity.darkenColorRGB(blended));
-
-                }
-                if(statePlaying){
-                    mPlayFragment.setVolume(slideOffset );
-
-                }
             }
 
 
             @Override
             public void onPanelExpanded(View panel) {
 
-                //fab.hide(true);
-                    fabMainText.setVisibility(View.GONE);
-                //toolbar.getNavigationIcon().setVisible(false, false);
-                if(statePlaying){
-                    mPlayFragment.setVolume(1f);
+                final Handler handler = new Handler();
 
-                }
+                (new Thread(){
+                    @Override
+                    public void run(){
+
+                        handler.post(new Runnable(){
+                            public void run() {
+                                //fab.hide(true);
+                                fabMainText.setVisibility(View.GONE);
+                                //toolbar.getNavigationIcon().setVisible(false, false);
+                                if(statePlaying){
+                                    mPlayFragment.setVolume(1f);
+
+                                }
+                            }
+                        });
+                    }
+                }).start();
+
             }
 
             @Override
@@ -432,6 +534,7 @@ public class FilesListFragment extends ColorFragment{
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+
         outState.putInt("color", mColor);
         outState.putString("title", expandedTitle);
         outState.putString("subtitle", expandedSubtitle);
@@ -444,39 +547,41 @@ public class FilesListFragment extends ColorFragment{
         return FRAGMENT_COLOR;
     }
     public static int blendColors(int to, int from, float ratio) {
-        int f = to;
-        int t = from;
+        // TODO put onto separate thread.
+        final int f = to;
+        final int t = from;
+        final float rat = ratio;
 
-        final float inverseRation = 1f - ratio;
-        final float r = Color.red(f) * ratio + Color.red(t) * inverseRation;
-        final float g = Color.green(f) * ratio + Color.green(t) * inverseRation;
-        final float b = Color.blue(f) * ratio + Color.blue(t) * inverseRation;
+        final float inverseRation = 1f - rat;
+        final float r = Color.red(f) * rat + Color.red(t) * inverseRation;
+        final float g = Color.green(f) * rat + Color.green(t) * inverseRation;
+        final float b = Color.blue(f) * rat + Color.blue(t) * inverseRation;
 
         return Color.rgb((int) r, (int) g, (int) b);
     }
-/*
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id){
-            case R.id.record_options:
-                mainActivity.replaceFragment(new RecordOptionsFragment(), R.id.slideUpPanel, false);
-                defaultColor = Color.GRAY;
-                slidingUpPanelLayout.expandPanel();
-                return true;
-            case R.id.action_settings:
-                Intent intent = new Intent(getActivity(), SettingsActivity.class);
-                startActivity(intent);
-            default: return super.onOptionsItemSelected(item);
-
+    /*
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            super.onCreateOptionsMenu(menu, inflater);
         }
-    }
-*/
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+            switch (id){
+                case R.id.record_options:
+                    mainActivity.replaceFragment(new RecordOptionsFragment(), R.id.slideUpPanel, false);
+                    defaultColor = Color.GRAY;
+                    slidingUpPanelLayout.expandPanel();
+                    return true;
+                case R.id.action_settings:
+                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                    startActivity(intent);
+                default: return super.onOptionsItemSelected(item);
+
+            }
+        }
+    */
     public void toggleFabMenu(){
         final FrameLayout fabMainText = (FrameLayout) v.findViewById(R.id.fabMainText);
         fabMainText.setVisibility(View.GONE);
@@ -492,6 +597,9 @@ public class FilesListFragment extends ColorFragment{
         toolbarOverLayed = false;
         fabMainText.startAnimation(mainTextAlphaAnimFadeOut);
         fabMainText.setVisibility(View.GONE);
+    }
+    public void setActionBarColorRef(int color){
+        defaultColor = color;
     }
 
 }

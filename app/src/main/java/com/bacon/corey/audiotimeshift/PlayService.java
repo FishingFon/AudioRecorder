@@ -21,12 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 
-
 public class PlayService extends Service {
     AudioTrack audioTrack;
     Notification notifaction;
     MediaPlayer mediaPlayer;
-    Recording recording;
+    com.bacon.corey.audiotimeshift.Recording recording;
     int position;
     public static boolean serviceIsRunning = false;
     boolean currentlyPlaying;
@@ -44,7 +43,7 @@ public class PlayService extends Service {
         //final Intent notificationIntent = new Intent(this, MainActivity.class);
         //final PendingIntent pendingIntent = new PendingIntent.getActivity(this, 101, notificationIntent, 101);
         try {
-            recording = (Recording) intent.getSerializableExtra("playItem");
+            recording = (com.bacon.corey.audiotimeshift.Recording) intent.getSerializableExtra("playItem");
             position = intent.getIntExtra("playItemPosition", -1);
             //playNewFile();
         }catch (Exception e){
@@ -92,12 +91,8 @@ public class PlayService extends Service {
             }
         }
 
-    */
-    public void playNewFile(int pos, Recording rec){
-        playMediaPlayer(pos, rec);
-
-    }
-    public void playMediaPlayer(int pos, Recording rec){
+*/
+    public void setNewFileForPlayback(int pos, com.bacon.corey.audiotimeshift.Recording rec){
         try {
 
             mediaPlayer = new MediaPlayer();
@@ -105,7 +100,7 @@ public class PlayService extends Service {
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(rec.getFilePathString());
             mediaPlayer.prepare();
-            mediaPlayer.start();
+            //mediaPlayer.start();
             currentlyPlaying = true;
 
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
@@ -123,6 +118,10 @@ public class PlayService extends Service {
     }
     public void pauseMediaPlayer(){
         mediaPlayer.pause();
+
+    }
+    public void playMediaPlayer(){
+        mediaPlayer.start();
     }
     public void stopMediaPlayer(){
         mediaPlayer.stop();

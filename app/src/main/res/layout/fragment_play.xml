@@ -7,16 +7,57 @@
     tools:context="com.bacon.corey.audiotimeshift.PlayFragment"
     android:background="@color/white"
     android:id="@+id/mainContainer"
-    >
+        >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/lineChartContainer"
+        android:layout_above="@+id/seekBarContainer"
 
+        >
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/lineChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
 
-    <SeekBar
+    </RelativeLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/seekBar2"
         android:layout_above="@+id/playButtonFrameLayoutContainer"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:id="@+id/seekBarContainer">
+        <TextView
+            android:layout_marginLeft="8dp"
+            android:textSize="10dp"
+            android:layout_alignParentLeft="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00"
+            android:id="@+id/currentPlaybackTime"/>
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/playFragmentSeekbar"
+
+            android:layout_below="@+id/currentPlaybackTime"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+        <TextView
+            android:layout_marginRight="8dp"
+            android:textSize="10dp"
+            android:layout_alignParentRight="true"
+            android:id="@+id/maxPlaybackLength"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00"/>
+
+    </RelativeLayout>
+
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

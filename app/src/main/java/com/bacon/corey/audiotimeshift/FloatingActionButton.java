@@ -23,9 +23,7 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 
 public class FloatingActionButton extends ImageButton {
 
@@ -38,7 +36,7 @@ public class FloatingActionButton extends ImageButton {
   int mColorNormal;
   int mColorPressed;
   @DrawableRes
-  private int mIcon;
+  int mIcon;
   private int mSize;
 
   private float mCircleSize;
@@ -136,6 +134,10 @@ public class FloatingActionButton extends ImageButton {
           return new ColorDrawable(Color.TRANSPARENT);
       }
   }
+    public void setIconDrawable(int drawableID){
+        mIcon = drawableID;
+        updateBackground();
+    }
   private StateListDrawable createFillDrawable(RectF circleRect) {
     StateListDrawable drawable = new StateListDrawable();
     drawable.addState(new int[] { android.R.attr.state_pressed }, createCircleDrawable(circleRect, mColorPressed));
@@ -220,4 +222,5 @@ public class FloatingActionButton extends ImageButton {
       setBackgroundDrawable(drawable);
     }
   }
+
 }

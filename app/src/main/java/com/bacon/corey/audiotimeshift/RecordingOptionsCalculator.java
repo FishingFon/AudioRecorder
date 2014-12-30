@@ -78,7 +78,6 @@ public abstract class RecordingOptionsCalculator {
         }
         return sampleRateDescriptions;
     }
-
     public static int getHighestSampleRate(){
         ArrayList<Integer> sampleRates = getSupportedSampleRates();
 
@@ -97,7 +96,6 @@ public abstract class RecordingOptionsCalculator {
         else
             return -1;
     }
-
     public static int getDefaultSampleRate(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String result = sharedPreferences.getString("pref_sampleRates", "");
@@ -109,7 +107,6 @@ public abstract class RecordingOptionsCalculator {
         }
 
     }
-
     public static int getDefaultChannels(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String result = sharedPreferences.getString("pref_sampleRates", "");
@@ -117,11 +114,10 @@ public abstract class RecordingOptionsCalculator {
             return Integer.parseInt(result);
         }
         else{
-            return getHighestSampleRate();
+            return getHighestSupportedChannel();
         }
 
     }
-
     public static ArrayList getSupportedChannels(){
         ArrayList<Integer> supportedChannels = new ArrayList<Integer>();
         ExtAudioRecorder result;
@@ -142,7 +138,6 @@ public abstract class RecordingOptionsCalculator {
         } while(++i < channelList.length);
         return supportedChannels;
     }
-
     public static int getLowestSupportedChannel(){
         ArrayList<Integer> supportedChannels = getSupportedChannels();
 
@@ -152,7 +147,6 @@ public abstract class RecordingOptionsCalculator {
         else
             return -1;
     }
-
     public static int getHighestSupportedChannel(){
         ArrayList<Integer> supportedChannels = getSupportedChannels();
 
@@ -162,9 +156,8 @@ public abstract class RecordingOptionsCalculator {
         else
             return -1;
     }
-
-    public static List getFiles(String directoryNamearg) {
-        final String directoryName = directoryNamearg;
+    public static List getFiles(String directoryNameArg) {
+        final String directoryName = directoryNameArg;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -191,13 +184,13 @@ public abstract class RecordingOptionsCalculator {
 
         return recordingsList;
     }
-    public static List getExistingFiles(String directoryNamearg) {
-        final String directoryName = directoryNamearg;
+    public static List getExistingFiles(String directoryNameArg) {
+        final String directoryName = directoryNameArg;
         if(recordingsList != null){
             return recordingsList;
         }
         else{
-            return getFiles(directoryNamearg);
+            return getFiles(directoryNameArg);
         }
 
     }
@@ -217,12 +210,37 @@ public abstract class RecordingOptionsCalculator {
                     }
                 }
 
-                //Collections.sort(recordingsList);
+                //Collections.sort(recordingsList); // TODO sort items in the list.
             }
         }).start();
 
 
         return recordingsList;
+    }
+    public static void deleteFile(File file){
+        final File mFile = file;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (mFile.exists()) {
+                    mFile.delete();
+                }
+            }
+        }).start();
+    }
+    public static void deleteFile(String filePath){
+        final String fileName = filePath;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File file = new File(fileName);
+                if (file.exists()) {
+                    file.delete();
+
+                }
+            }
+        }).start();
+
     }
 }
 

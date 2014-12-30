@@ -78,14 +78,14 @@ public class RecordingListAdapter extends ArrayAdapter<Recording> {
 
 
         if (recordingLen < 60){
-            icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())) + "s");
+            icon.setText(Long.toString(Math.round((double) recordingLen)) + "s");
         }
         else if (recordingLen >= 60 && recordingLen < 3600){
-            icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())/60) + "m");
+            icon.setText(Long.toString(Math.round((double) recordingLen)/60) + "m");
 
         }
         else if (recordingLen >= 3600){
-            icon.setText(Long.toString(Math.round((double) recordings.get(position).getAudioLengthInSeconds())/3600) + "h");
+            icon.setText(Long.toString(Math.round((double) recordingLen)/3600) + "h");
 
         }
             GradientDrawable iconBackground = (GradientDrawable)icon.getBackground();
