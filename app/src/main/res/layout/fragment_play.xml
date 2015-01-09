@@ -13,14 +13,19 @@
         android:layout_height="match_parent"
         android:id="@+id/lineChartContainer"
         android:layout_above="@+id/seekBarContainer"
-
+        android:gravity="center_horizontal"
         >
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             />
-
+        <FrameLayout
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="@color/Red"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"/>
     </RelativeLayout>
 
     <RelativeLayout

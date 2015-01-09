@@ -195,6 +195,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
      */
     private boolean mFirstLayout = true;
 
+
     private final Rect mTmpRect = new Rect();
 
     /**
@@ -230,6 +231,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
          * @param panel The child view that was slid to a hidden position
          */
         public void onPanelHidden(View panel);
+        public boolean isPanelSliding();
     }
 
     /**
@@ -237,20 +239,32 @@ public class SlidingUpPanelLayout extends ViewGroup {
      * of the listener methods you can extend this instead of implement the full interface.
      */
     public static class SimplePanelSlideListener implements PanelSlideListener {
+        public boolean isPanelSliding = false;
         @Override
         public void onPanelSlide(View panel, float slideOffset) {
+            if(!isPanelSliding) isPanelSliding = true;
         }
         @Override
         public void onPanelCollapsed(View panel) {
+            if(isPanelSliding) isPanelSliding = false;
         }
         @Override
         public void onPanelExpanded(View panel) {
+            if(isPanelSliding) isPanelSliding = false;
+
         }
         @Override
         public void onPanelAnchored(View panel) {
+            if(isPanelSliding) isPanelSliding = false;
+
         }
         @Override
         public void onPanelHidden(View panel) {
+            if(isPanelSliding) isPanelSliding = false;
+
+        }
+        public boolean isPanelSliding(){
+            return isPanelSliding;
         }
     }
 
@@ -419,6 +433,9 @@ public class SlidingUpPanelLayout extends ViewGroup {
      */
     public void setPanelSlideListener(PanelSlideListener listener) {
         mPanelSlideListener = listener;
+    }
+    public PanelSlideListener getPanelSlideListener() {
+        return mPanelSlideListener;
     }
 
     /**

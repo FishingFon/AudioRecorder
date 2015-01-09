@@ -299,6 +299,11 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
             }
         });
         slidingUpPanelLayout.setPanelSlideListener(new com.bacon.corey.audiotimeshift.SlidingUpPanelLayout.PanelSlideListener() {
+            boolean isPanelSliding = false;
+            @Override
+            public boolean isPanelSliding() {
+                return isPanelSliding;
+            }
 
             @Override
             public void onPanelCollapsed(View panel) {
@@ -308,7 +313,7 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
                 (new Thread(){
                     @Override
                     public void run(){
-
+                        if(isPanelSliding) isPanelSliding = false;
                         handler.post(new Runnable(){
                             public void run() {
                                 defaultColor = -1;
@@ -341,6 +346,7 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
                                 if(!takeOneTaken) {
                                     takeOne = sOffset;
                                     takeOneTaken = true;
+                                    if(!isPanelSliding) isPanelSliding = true;
                                 }
                                 else if(takeOneTaken){
                                     takeTwo = sOffset;
@@ -467,7 +473,7 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
                 (new Thread(){
                     @Override
                     public void run(){
-
+                        if(isPanelSliding) isPanelSliding = false;
                         handler.post(new Runnable(){
                             public void run() {
                                 //fab.hide(true);
@@ -486,11 +492,13 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
 
             @Override
             public void onPanelAnchored(View panel) {
-
+                if(isPanelSliding) isPanelSliding = false;
             }
 
             @Override
             public void onPanelHidden(View panel) {
+                if(isPanelSliding) isPanelSliding = false;
+
                 mainActivity.getDimShadowDrop().getForeground().setAlpha(0);
 
             }

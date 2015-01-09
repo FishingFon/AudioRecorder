@@ -24,6 +24,7 @@ import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Array;
@@ -47,14 +49,20 @@ import java.util.Random;
 
 import com.github.mikephil.charting.*;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.DataSet;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.OnDrawListener;
+import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.XLabels;
+import com.github.mikephil.charting.utils.YLabels;
+
 
 import libs.CircleButton;
 
 public class PlayFragment extends Fragment {
+
     Bundle bundle;
     com.bacon.corey.audiotimeshift.Recording recording;
     Boolean clicked = new Boolean(false);
@@ -81,6 +89,7 @@ public class PlayFragment extends Fragment {
     boolean seekbarProgresssChangeInProgress = false;
     boolean seekbarIsItTouch = false;
     int lastTime = -1;
+    float gLastTime = -1;
     AlphaAnimation end;
     AlphaAnimation start;
     LineChart mLineChart;
@@ -101,6 +110,7 @@ public class PlayFragment extends Fragment {
 
 
         updateSeekProgress(); // TODO
+        updateGraphCenter();
 
         start = new AlphaAnimation(1.0f, 0.5f);
         start.setDuration(100);
@@ -130,6 +140,7 @@ public class PlayFragment extends Fragment {
         playIntent.putExtra("playItemPosition", recPosition);
         playIntent.putExtra("playItem", recording);
         getActivity().bindService(playIntent, mConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
@@ -158,7 +169,6 @@ public class PlayFragment extends Fragment {
         maxPlaybackLength = (TextView) view.findViewById(R.id.maxPlaybackLength);
         mLineChart = (LineChart) view.findViewById(R.id.lineChart);
 
-
         final int color = bundle.getInt("color");
         actionBarBackground = mainActivity.getActionBarDrawable();
 
@@ -181,10 +191,13 @@ public class PlayFragment extends Fragment {
         buildAudioWaveData(recording);
         //buildChartData();
         //TODO add delete function
-/*
+
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //mLineChart.zoom(calculateOptimalZoomLevel(), 1f, mLineChart.getMeasuredWidth() / 2, mLineChart.getMeasuredHeight() / 2);
+                calculateOnDemandDataSets(2f,mLineChart.getVisibleDomainCount(), playService.getMediaPlayer().getCurrentPosition() / 1000, recording);
+                /*
                 RecordingOptionsCalculator.deleteFile(recording.getFile());
                 recordingsList.remove(currentFilePosition);
                 mainActivity.getListAdapter().notifyDataSetChanged();
@@ -194,9 +207,11 @@ public class PlayFragment extends Fragment {
                 else{
                     mainActivity.getSlidingUpPanelLayout().collapsePanel();
                 }
+
+            */
             }
         });
-*/
+
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -589,30 +604,7 @@ public class PlayFragment extends Fragment {
         thumnb.setColorFilter(colour, PorterDuff.Mode.SRC_IN);
         d.setColorFilter(colour, PorterDuff.Mode.SRC_IN);
     }
-    public void seekUpdation() {
-        //Handler seekHandler = new Handler();
-        try {
-            if (playService.getMediaPlayer().isPlaying() && !seekbarProgresssChangeInProgress) {
-                int length = playService.getMediaPlayer().getCurrentPosition() / 1000;
-                if(lastTime != -1){
-                    if(length != lastTime){
-                        seekbar.setProgress(length);
-                        Log.i("PlayFragment", "SeekUpdation called - Time updated");
 
-                    }
-                }
-                else if (lastTime == -1){
-                    seekbar.setProgress(length);
-
-                }
-                currentPlaybackPosition.setText(getAudioLengthInHMSFormat(length));
-                //seekHandler.postDelayed(run, 1000);
-                lastTime = length;
-            }
-        }catch (IllegalStateException e){
-
-        }
-    }
 
     public String getAudioLengthInHMSFormat(int seconds){
 
@@ -658,33 +650,93 @@ public class PlayFragment extends Fragment {
         return formattedString;
     }
 
-    public void updateSeekProgress(){
+
+
+    public void updateSeekProgress() {
         final Handler handler = new Handler();
 
         (new Thread(){
             @Override
             public void run() {
                 while (true) {
-                    handler.post(new Runnable() {
-                        public void run() {
-                            if(mBound) {
-                                try{
-                                    if (playService.getMediaPlayer().isPlaying()) {
-                                        seekUpdation();
+                    try {
+                        if (mBound) {
+                            if (playService.getMediaPlayer().isPlaying() && !seekbarProgresssChangeInProgress) {
+                                final int currentPosition = playService.getMediaPlayer().getCurrentPosition() / 1000;
+
+                                handler.post(new Runnable() {
+                                    public void run() {
+                                        try {
+                                            if (currentPosition != lastTime && !mainActivity.getSlidingUpPanelLayout().getPanelSlideListener().isPanelSliding()) {
+                                                seekbar.setProgress(currentPosition);
+                                                Log.i("PlayFragment", "SeekUpdation called - Time updated");
+                                                currentPlaybackPosition.setText(getAudioLengthInHMSFormat(currentPosition));
+
+                                            }
+
+
+                                            lastTime = currentPosition;
+
+                                        } catch (IllegalStateException e) {
+
+                                        }
 
                                     }
-                                }catch (IllegalStateException e){
-
-                                }
+                                });
                             }
                         }
-                    });
+                    }catch (Exception e){
+
+                    }
                     try{ sleep(1000); }
                     catch(InterruptedException e){ }
                 }
             }
         }).start();
     }
+    public void updateGraphCenter() {
+        final Handler handler = new Handler();
+
+        (new Thread(){
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        if (mBound) {
+                            if (playService.getMediaPlayer().isPlaying()) {
+                                final float currentPosition = playService.getMediaPlayer().getCurrentPosition() / 1000f;
+                                Log.i("test", Float.toString(currentPosition));
+                                handler.post(new Runnable() {
+                                    public void run() {
+                                        try {
+
+                                            if (currentPosition != lastTime && !mainActivity.getSlidingUpPanelLayout().getPanelSlideListener().isPanelSliding()) {
+                                                mLineChart.centerViewPort(currentPosition, 1f);
+                                                Log.i("PlayFragment", "graphUpdation called - Time updated");
+
+                                            }
+
+
+                                            gLastTime = currentPosition;
+
+                                        } catch (IllegalStateException e) {
+
+                                        }
+
+                                    }
+                                });
+                            }
+                        }
+                    }catch (Exception e){
+
+                    }
+                    try{ sleep(200); }
+                    catch(InterruptedException e){ }
+                }
+            }
+        }).start();
+    }
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -738,12 +790,14 @@ public class PlayFragment extends Fragment {
     }
     }
     public void setUpChart(ArrayList <Integer> audioData){
+        mLineChart.setOffsets(0,0,0,0);
         mLineChart.setDrawYValues(false);
         mLineChart.setDescription("");
         mLineChart.setDrawLegend(false);
         mLineChart.setDrawBorder(false);
         mLineChart.setDrawUnitsInChart(false);
-        mLineChart.setNoDataTextDescription("No wave data is available for this audio file.");
+        // mLineChart.setNoDataTextDescription("No wave data is available for this audio file.");
+        mLineChart.setNoDataText("No wave data is available for this audio file.");
         //mLineChart.setDrawXLabels(false);
         mLineChart.setPinchZoom(false);
         mLineChart.setBackgroundColor(Color.WHITE);
@@ -754,16 +808,14 @@ public class PlayFragment extends Fragment {
         mLineChart.getYLabels().setDrawTopYLabelEntry(false);
         mLineChart.setStartAtZero(false);
         mLineChart.setPadding(0,0,0,0);
-        //mLineChart.setDragOffsetX(40f); sets white space at the sides of graph
+
+            mLineChart.setDragEnabled(true);
+        //mLineChart.setDragOffsetX(40f); sets white space at the sides of graph when scrolling
         //mLineChart.setDoubleTapToZoomEnabled(false);
         mLineChart.setHighlightEnabled(false);
+        mLineChart.setDragOffsetX((mLineChart.getMeasuredWidth() / 2) / getActivity().getResources().getDisplayMetrics().density);
+        mLineChart.setDrawXLabels(false);
 
-        mLineChart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Add onclick data here
-            }
-        });
 
         //mLineChart.getXLabels().setSpaceBetweenLabels(10);
         mLineChart.invalidate();
@@ -785,6 +837,7 @@ public class PlayFragment extends Fragment {
         for (int temp: audioData){
             vals.add(new Entry(temp, i));
             xVals.add(Integer.toString(i));
+
             i++;
         }
         LineDataSet lineDataSet = new LineDataSet(vals, "Random  Numbers");
@@ -797,10 +850,12 @@ public class PlayFragment extends Fragment {
 
         LineData data = new LineData(xVals, dataSets);
         mLineChart.setData(data);
-        Log.i("status", "chart set data");
-
+        //mLineChart.animateY(3000); // Animate chart
+        Log.i("status", "chart data set");
 
     }
+
+
     public ArrayList <Integer> buildAudioWaveData(Recording recording){
         final Recording finalRecording = recording;
         final Handler handler = new Handler();
@@ -850,6 +905,93 @@ public class PlayFragment extends Fragment {
 
 
         return null;
+    }
+    public float calculateOptimalZoomLevel(){
+        int graphWidthPX = mLineChart.getMeasuredWidth();
+        //int graphHeightPX = mLineChart.getMeasuredHeight();
+        float graphWidthDP = Utils.convertPixelsToDp(graphWidthPX);
+        float numberOfSecondsToShow = graphWidthDP / 70f;
+        int recordingLength = playService.getMediaPlayer().getDuration() / 1000; // in seconds
+        float zoomLevel = recordingLength / numberOfSecondsToShow;
+        float x = mLineChart.getDeltaX();
+        return zoomLevel;
+    }
+    public void calculateOnDemandDataSets(final float overflow, final float visibleRange, final int currentRecordingPosition, final Recording recording){
+
+        final Recording finalRecording = recording;
+        final Handler handler = new Handler();
+        final ArrayList <Integer> dataSeries = new ArrayList<Integer>();
+
+
+        (new Thread(){
+            @Override
+            public void run(){
+                File recFile = finalRecording.getFile();
+
+
+                try {
+                    InputStream bis = new BufferedInputStream(new FileInputStream(recFile));
+                    DataInputStream dis = new DataInputStream(bis);
+                    RandomAccessFile randomAccessFile =  new RandomAccessFile(recFile, "rw");
+                    long sampleRate = finalRecording.getSampleRate(randomAccessFile);
+                    int numChanels = finalRecording.getNumChannels(randomAccessFile);
+                    int samplesPerDatum = (int)sampleRate / 100; // One sample for every 1000 ms. TODO
+                    long fileLengthInBytes = recFile.length();
+                    long fileDataRemaining = fileLengthInBytes / numChanels; // 16 bit wave file = 2 bytes per sample.
+                    int max = 0;
+                    short temp = 0;
+                    //long sampleReadCount = 0;
+                    long skipBytes = Math.round((currentRecordingPosition * sampleRate) - ((visibleRange / 2)*sampleRate)+visibleRange * overflow * sampleRate);
+
+                    float rangeToCompute = visibleRange + overflow * visibleRange + (skipBytes / sampleRate);
+                    int endOfReadingBytes = Math.round(skipBytes + rangeToCompute * sampleRate);
+                    long totalSkipped = 0;
+                    if(skipBytes > 0) {
+                        dis.skip(skipBytes);
+                    }
+                    else{
+
+                    }
+
+                    for(long sampleReadCount = 0; sampleReadCount < rangeToCompute; sampleReadCount++ ){
+                        if(fileDataRemaining > samplesPerDatum) {
+
+                            for(int i = 0; i < sampleRate / samplesPerDatum; i++){
+                                temp = dis.readShort();
+                                if (temp > max) {
+                                    max = temp;
+                                }
+                                dis.skip(sampleRate / samplesPerDatum);
+                                totalSkipped+= sampleRate / samplesPerDatum;
+
+                            }
+
+
+
+                            dataSeries.add((int)max);
+                            max = 0;
+                        }
+                        fileDataRemaining -= samplesPerDatum;
+
+                        //Log.i("valuesCharData", rangeToCompute + " : " + sampleReadCount + " : " + totalSkipped);
+
+                    }
+
+                    Log.i("status", "finished building data");
+                    handler.post(new Runnable() {
+                        public void run() {
+                            Log.i("status", "setting chart data");
+
+                            setUpChart(dataSeries);
+
+                        }
+                    });
+                }catch(IOException e){
+                    Log.e("exception", "error: "  + e);
+                }
+            }
+        }).start();
+
     }
 
 }
