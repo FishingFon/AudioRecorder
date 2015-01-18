@@ -1188,6 +1188,14 @@ public abstract class Chart<T extends ChartData<? extends DataSet<? extends Entr
         mAnimatorY.start();
     }
 
+    public void animateYToZero(int durationMillis) {
+
+        mAnimatorY = ObjectAnimator.ofFloat(this, "phaseY", 1f, 0f);
+        mAnimatorY.setDuration(durationMillis);
+        mAnimatorY.addUpdateListener(this);
+        mAnimatorY.start();
+    }
+
     @Override
     public void onAnimationUpdate(ValueAnimator va) {
 

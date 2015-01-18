@@ -17,7 +17,7 @@ public class BarEntry extends Entry {
      * @param vals
      * @param xIndex
      */
-    public BarEntry(float[] vals, int xIndex) {
+    public BarEntry(float[] vals, float xIndex) {
         super(calcSum(vals), xIndex);
 
         this.mVals = vals;
@@ -29,7 +29,7 @@ public class BarEntry extends Entry {
      * @param val
      * @param xIndex
      */
-    public BarEntry(float val, int xIndex) {
+    public BarEntry(float val, float xIndex) {
         super(val, xIndex);
     }
 
@@ -40,7 +40,7 @@ public class BarEntry extends Entry {
      * @param xIndex
      * @param label Additional description label.
      */
-    public BarEntry(float[] vals, int xIndex, String label) {
+    public BarEntry(float[] vals, float xIndex, String label) {
         super(calcSum(vals), xIndex, label);
 
         this.mVals = vals;
@@ -53,7 +53,7 @@ public class BarEntry extends Entry {
      * @param xIndex
      * @param data Spot for additional data this Entry represents.
      */
-    public BarEntry(float val, int xIndex, Object data) {
+    public BarEntry(float val, float xIndex, Object data) {
         super(val, xIndex, data);
     }
 

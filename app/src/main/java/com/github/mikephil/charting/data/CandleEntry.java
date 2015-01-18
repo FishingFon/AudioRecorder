@@ -29,7 +29,7 @@ public class CandleEntry extends Entry {
      * @param open
      * @param close
      */
-    public CandleEntry(int xIndex, float shadowH, float shadowL, float open, float close) {
+    public CandleEntry(float xIndex, float shadowH, float shadowL, float open, float close) {
         super((shadowH + shadowL) / 2f, xIndex);
 
         this.mShadowHigh = shadowH;
@@ -48,7 +48,7 @@ public class CandleEntry extends Entry {
      * @param close
      * @param data Spot for additional data this Entry represents.
      */
-    public CandleEntry(int xIndex, float shadowH, float shadowL, float open, float close,
+    public CandleEntry(float xIndex, float shadowH, float shadowL, float open, float close,
             Object data) {
         super((shadowH + shadowL) / 2f, xIndex, data);
 

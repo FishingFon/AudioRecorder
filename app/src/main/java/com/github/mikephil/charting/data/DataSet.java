@@ -3,9 +3,11 @@ package com.github.mikephil.charting.data;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 /**
@@ -117,6 +119,7 @@ public abstract class DataSet<T extends Entry> {
      */
     public int getEntryCount() {
         return mYVals.size();
+
     }
 
     /**
@@ -147,7 +150,7 @@ public abstract class DataSet<T extends Entry> {
      * @param xIndex
      * @return
      */
-    public T getEntryForXIndex(int x) {
+    public T getEntryForXIndex(float x) {
 
         int low = 0;
         int high = mYVals.size() - 1;
@@ -366,7 +369,7 @@ public abstract class DataSet<T extends Entry> {
      * 
      * @param xIndex
      */
-    public boolean removeEntry(int xIndex) {
+    public boolean removeEntry(float xIndex) {
 
         T e = getEntryForXIndex(xIndex);
         return removeEntry(e);

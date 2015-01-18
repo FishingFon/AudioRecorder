@@ -52,6 +52,7 @@ public class Transformer {
     /** offset that allows the chart to be dragged over its bounds on the x-axis */
     private float mTransOffsetY = 0f;
 
+    public float maximumZoom = 0;
     public Transformer() {
 
     }
@@ -306,13 +307,15 @@ public class Transformer {
      * @param y
      */
     public Matrix zoom(float scaleX, float scaleY, float x, float y) {
-
         Matrix save = new Matrix();
-        save.set(mMatrixTouch);
 
-        // Log.i(LOG_TAG, "Zooming, x: " + x + ", y: " + y);
 
-        save.postScale(scaleX, scaleY, x, y);
+
+            save.set(mMatrixTouch);
+
+            // Log.i(LOG_TAG, "Zooming, x: " + x + ", y: " + y);
+
+            save.postScale(scaleX, scaleY, x, y);
 
         return save;
     }

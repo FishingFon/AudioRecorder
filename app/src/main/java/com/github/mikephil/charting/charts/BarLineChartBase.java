@@ -1041,6 +1041,9 @@ public abstract class BarLineChartBase<T extends BarLineScatterCandleData<? exte
         Matrix save = mTrans.zoom(scaleX, scaleY, x, -y);
         mTrans.refresh(save, this);
     }
+    public void setMaximumZoom(float maximumZoom){
+        mTrans.maximumZoom = maximumZoom;
+    }
 
     /**
      * Resets all zooming and dragging and makes the chart fit exactly it's

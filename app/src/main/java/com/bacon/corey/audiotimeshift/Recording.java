@@ -169,6 +169,9 @@ public class Recording implements Comparable<Recording>, Serializable {
          }
 
     }
+
+
+
     public int getAudioLengthInBestFormat(){
         long recordingLen = getAudioLengthInSeconds();
         if (recordingLen < 60){

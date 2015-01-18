@@ -309,7 +309,7 @@ public class PieChart extends PieRadarChartBase<PieData> {
      * @param dataSetIndex
      * @return
      */
-    private boolean needsHighlight(int xIndex, int dataSetIndex) {
+    private boolean needsHighlight(float xIndex, int dataSetIndex) {
 
         // no highlight
         if (!valuesToHighlight())

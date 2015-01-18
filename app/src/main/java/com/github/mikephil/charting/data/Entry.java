@@ -13,7 +13,7 @@ public class Entry {
     private float mVal = 0f;
 
     /** the index on the x-axis */
-    private int mXIndex = 0;
+    private float mXIndex = 0;
 
     /** optional spot for additional data this Entry represents */
     private Object mData = null;
@@ -26,7 +26,7 @@ public class Entry {
      *            x-axis of the chart, must NOT be higher than the length of the
      *            x-values String array)
      */
-    public Entry(float val, int xIndex) {
+    public Entry(float val, float xIndex) {
         mVal = val;
         mXIndex = xIndex;
     }
@@ -40,7 +40,7 @@ public class Entry {
      *            x-values String array)
      * @param data Spot for additional data this Entry represents.
      */
-    public Entry(float val, int xIndex, Object data) {
+    public Entry(float val, float xIndex, Object data) {
         this(val, xIndex);
 
         this.mData = data;
@@ -51,7 +51,7 @@ public class Entry {
      * 
      * @return
      */
-    public int getXIndex() {
+    public float getXIndex() {
         return mXIndex;
     }
 

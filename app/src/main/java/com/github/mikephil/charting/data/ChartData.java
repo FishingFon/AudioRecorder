@@ -281,7 +281,8 @@ public abstract class ChartData<T extends DataSet<? extends Entry>> {
      * @return
      */
     public float getYValueSum() {
-        return mYValueSum;
+        //return mYValueSum; TODO
+        return mXVals.size();
     }
 
     /**
@@ -372,7 +373,7 @@ public abstract class ChartData<T extends DataSet<? extends Entry>> {
      * @return
      */
     public int getXValCount() {
-        return mXVals.size();
+        return mXVals.size() - 400;
     }
 
     /**
