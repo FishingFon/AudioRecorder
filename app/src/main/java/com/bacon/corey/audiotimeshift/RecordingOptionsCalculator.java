@@ -4,12 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -109,7 +107,7 @@ public abstract class RecordingOptionsCalculator {
     }
     public static int getDefaultChannels(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String result = sharedPreferences.getString("pref_sampleRates", "");
+        String result = sharedPreferences.getString("pref_channels", "");
         if(result != "" && result != null){
             return Integer.parseInt(result);
         }

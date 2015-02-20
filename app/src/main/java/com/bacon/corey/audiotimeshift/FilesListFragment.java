@@ -201,9 +201,48 @@ public class FilesListFragment extends com.bacon.corey.audiotimeshift.ColorFragm
 
                                 //mainActivity.getDimShadowDrop().getForeground().setAlpha(180);
                                 if (fabExpanded){
-                                    ((com.bacon.corey.audiotimeshift.MainActivity)getActivity()).replaceFragment(new com.bacon.corey.audiotimeshift.RecordFragment(), R.id.slideUpPanel, false);
+                                    //((com.bacon.corey.audiotimeshift.MainActivity)getActivity()).replaceFragment(new com.bacon.corey.audiotimeshift.RecordFragment(), R.id.slideUpPanel, false);
                                     //slidingUpPanelLayout.expandPanel();
                                     defaultColor = getResources().getColor(R.color.recordDefaultColor);
+
+                                    final Handler handler = new Handler();
+
+                                    (new Thread(){
+                                        @Override
+                                        public void run(){
+
+                                            handler.post(new Runnable(){
+                                                public void run() {
+
+                                                    RecordFragment mRecordFragment = new RecordFragment(){
+                                                        @Override
+                                                        public void onResume() {
+                                                            final Handler handler = new Handler();
+
+                                                            (new Thread(){
+                                                                @Override
+                                                                public void run(){
+                                                                    try{ sleep(100); }
+                                                                    catch(InterruptedException e){}
+                                                                    handler.post(new Runnable(){
+                                                                        public void run() {
+                                                                            slidingUpPanelLayout.expandPanel();
+
+                                                                        }
+                                                                    });
+
+                                                                }
+                                                            }).start();
+                                                            super.onResume();
+
+                                                        }
+                                                    };
+                                                    ((com.bacon.corey.audiotimeshift.MainActivity)getActivity()).replaceFragment(mRecordFragment, R.id.slideUpPanel, false);
+
+                                                }
+                                            });
+                                        }
+                                    }).start();
 
 
                                 }

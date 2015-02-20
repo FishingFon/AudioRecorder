@@ -1,7 +1,11 @@
 package com.bacon.corey.audiotimeshift;
 
-import android.graphics.Color;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.ServiceConnection;
 import android.graphics.PorterDuff;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.media.AudioFormat;
@@ -52,6 +56,10 @@ public class RecordFragment extends Fragment {
     short channels = 1;
     int bitsPerSample = 16;
     ExtAudioRecorder extAudioRecord;
+    RecordService recordService;
+    boolean serviceBound = false;
+    Intent recordIntent;
+    final int GRAPH_UPDATION_TIME_INTERVAL = 200;
 
     public static RecordFragment newInstance() {
         RecordFragment fragment = new RecordFragment();
@@ -70,6 +78,7 @@ public class RecordFragment extends Fragment {
         if (getArguments() != null) {
 
         }
+
     }
 
     @Override
@@ -122,13 +131,37 @@ public class RecordFragment extends Fragment {
             }
         });
 
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    recordService.getAudioRecorder().stop();
+                    recordService.getAudioRecorder().release();
+
+                } catch (Exception e) {
+                    Log.e("RecordService exception", "" + e);
+
+                    e.printStackTrace();                }
+            }
+        });
 
 
                 return view;
             }
 
 
-        @Override
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        recordIntent = new Intent(getActivity(), RecordService.class);
+//        playIntent.putExtra("action", com.bacon.corey.audiotimeshift.Constants.PLAY);
+        getActivity().bindService(recordIntent, mConnection, Context.BIND_AUTO_CREATE);
+
+
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         if(extAudioRecord != null){
@@ -136,7 +169,7 @@ public class RecordFragment extends Fragment {
         }
         //extAudioRecord.release();
         //audioRecord.stop();
-        Log.v("Record", "onDestroyView called, Record stopped");
+        Log.v("RecordFragment", "onDestroyView called, Record stopped");
     }
 
     public interface OnFragmentInteractionListener {
@@ -320,10 +353,63 @@ public class RecordFragment extends Fragment {
 
             }
         }
+    public ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            RecordService.LocalBinder binder = (RecordService.LocalBinder) service;
+            recordService = binder.getService();
+            serviceBound = true;
+            recordService.instantiateAudioRecorder(AudioFormat.CHANNEL_IN_MONO, RecordingOptionsCalculator.getDefaultSampleRate(getActivity()), true, AudioFormat.ENCODING_PCM_16BIT, MediaRecorder.AudioSource.MIC); // TODO change to get proper recording specs and add stereo support
+            try {
+                //recordService.getAudioRecorder().setOutputFile(Environment.getExternalStorageDirectory() + File.separator + "TimeShiftRecorder" + File.separator + DateFormat.getDateTimeInstance().format(new Date()) + ".wav");
+                recordService.getAudioRecorder().setOutputFile(Environment.getExternalStorageDirectory() + File.separator + "TimeShiftRecorder" + File.separator + "testingMyRecording" + ".wav");
+
+                recordService.getAudioRecorder().prepare();
+                recordService.getAudioRecorder().start();
+                updateGraphAmplitude();
+            } catch (Exception e) {
+                Log.e("RecordService exception", "" + e);
+
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            serviceBound = false;
+        }
+    };
 
 
 
+    public void updateGraphAmplitude() {
+        // TODO
+        final Handler handler = new Handler();
 
+        (new Thread(){
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        if (serviceBound) {
+                            Log.i("graphAmplitude", Float.toString(recordService.getAudioRecorder().getMaxAmplitudeFloat()));
+                        }
+                    }catch (Exception e){
+
+                    }
+                    try{ sleep(GRAPH_UPDATION_TIME_INTERVAL); }
+                    catch(InterruptedException e){
+                        e.printStackTrace();
+
+                    }
+                }
+            }
+        }).start();
+    }
     }
 
 

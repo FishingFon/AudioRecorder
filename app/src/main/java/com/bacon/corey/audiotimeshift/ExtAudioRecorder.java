@@ -20,6 +20,7 @@ public class ExtAudioRecorder
     private final static int[] sampleRates = {44100, 22050, 11025, 8000};
     int sampleRate, channels;
     ExtAudioRecorder result;
+    boolean recordingStopped = false;
 
 
     public static ExtAudioRecorder getInstanse(Boolean recordingCompressed)
@@ -50,9 +51,6 @@ public class ExtAudioRecorder
         return result;
 
     }
-
-
-
 
     /**
      * INITIALIZING : recorder is initializing;
@@ -138,7 +136,11 @@ public class ExtAudioRecorder
             audioRecorder.read(buffer, 0, buffer.length); // Fill buffer
             try
             {
-                randomAccessWriter.write(buffer); // Write buffer to file
+
+                if (!recordingStopped) {
+                    randomAccessWriter.write(buffer); // Write buffer to file
+                }
+
                 payloadSize += buffer.length;
                 if (bSamples == 16)
                 {
@@ -164,8 +166,9 @@ public class ExtAudioRecorder
             }
             catch (IOException e)
             {
-                Log.e(ExtAudioRecorder.class.getName(), "Error occured in updateListener, recording is aborted");
-                //stop();
+                Log.e(ExtAudioRecorder.class.getName(), "Error occured in updateListener, recording is aborted:" + e);
+                e.printStackTrace();
+                stop();
             }
                 }
             });
@@ -323,7 +326,34 @@ public class ExtAudioRecorder
             return 0;
         }
     }
-
+    // same as above, but with a range of 0.0 - 1.0
+    public float getMaxAmplitudeFloat()
+    {
+        if (state == State.RECORDING)
+        {
+            if (rUncompressed)
+            {
+                int result = cAmplitude;
+                cAmplitude = 0;
+                return result / 32768f;
+            }
+            else
+            {
+                try
+                {
+                    return mediaRecorder.getMaxAmplitude() / 32768f;
+                }
+                catch (IllegalStateException e)
+                {
+                    return 0;
+                }
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
 
     /**
      *
@@ -554,6 +584,7 @@ public class ExtAudioRecorder
         {
             if (rUncompressed)
             {
+                recordingStopped = true;
                 audioRecorder.stop();
 
                 try

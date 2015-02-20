@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.bacon.corey.audiotimeshift.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,34 +28,40 @@
         </activity>
 
         <service
-            android:name="com.bacon.corey.audiotimeshift.PlayService"
+            android:name=".PlayService"
             android:exported="false" >
         </service>
 
         <activity
-            android:name="com.bacon.corey.audiotimeshift.PlayActivity"
+            android:name=".PlayActivity"
             android:label="@string/title_activity_play"
-            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bacon.corey.audiotimeshift.MainActivity" />
         </activity>
         <activity
-            android:name="com.bacon.corey.audiotimeshift.RecordActivity"
+            android:name=".RecordActivity"
             android:label="@string/title_activity_record"
-            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bacon.corey.audiotimeshift.MainActivity" />
         </activity>
         <activity
-            android:name="com.bacon.corey.audiotimeshift.SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="com.bacon.corey.audiotimeshift.MainActivity" >
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bacon.corey.audiotimeshift.MainActivity" />
         </activity>
+
+        <service
+            android:name=".RecordService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
     </application>
 
 </manifest>

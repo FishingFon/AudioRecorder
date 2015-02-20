@@ -9,6 +9,8 @@ import android.view.MotionEvent;
  * @author Philipp Jahoda
  */
 public interface OnChartGestureListener {
+    public void onChartTouched(MotionEvent me);
+
 
     /**
      * Callbacks when the chart is longpressed.
@@ -39,5 +41,9 @@ public interface OnChartGestureListener {
      * @param velocityX
      * @param velocityY
      */
+    public void onChartTouchReleased(MotionEvent me);
+    public void onChartZoomed(MotionEvent me);
+
+    public void onChartDragged(MotionEvent me);
     public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY);
 }

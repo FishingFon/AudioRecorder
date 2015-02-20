@@ -54,7 +54,7 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
     private float mSavedXDist = 1f;
     private float mSavedYDist = 1f;
     private float mSavedDist = 1f;
-
+    OnChartGestureListener gesListener;
     /** the last highlighted object */
     private Highlight mLastHighlighted;
 
@@ -74,6 +74,9 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        gesListener = mChart.getOnChartGestureListener();
+
+        gesListener.onChartTouched(event);
 
         if (mTouchMode == NONE) {
             mGestureDetector.onTouchEvent(event);
@@ -88,6 +91,14 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
             case MotionEvent.ACTION_DOWN:
 
                 saveTouchStart(event);
+                break;
+            case MotionEvent.ACTION_UP:
+                mChart.getOnChartGestureListener().onChartTouchReleased(event);
+                mTouchMode = NONE;
+                mChart.enableScroll();
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                mTouchMode = POST_ZOOM;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
 
@@ -135,8 +146,10 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
 
                     mChart.disableScroll();
 
-                    if (mChart.isScaleEnabled())
+                    if (mChart.isScaleEnabled()) {
                         performZoom(event);
+                        gesListener.onChartZoomed(event);
+                    }
 
                 } else if (mTouchMode == NONE
                         && Math.abs(distance(event.getX(), mTouchStartPoint.x, event.getY(),
@@ -153,13 +166,7 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
                 }
                 break;
 
-            case MotionEvent.ACTION_UP:
-                mTouchMode = NONE;
-                mChart.enableScroll();
-                break;
-            case MotionEvent.ACTION_POINTER_UP:
-                mTouchMode = POST_ZOOM;
-                break;
+
         }
 
         // Perform the transformation, update the chart
@@ -190,6 +197,9 @@ public class BarLineChartTouchListener<T extends BarLineChartBase<? extends BarL
      * @param event
      */
     private void performDrag(MotionEvent event) {
+
+        OnChartGestureListener l = mChart.getOnChartGestureListener();
+        l.onChartDragged(event);
 
         mMatrix.set(mSavedMatrix);
         PointF dragPoint = new PointF(event.getX(), event.getY());

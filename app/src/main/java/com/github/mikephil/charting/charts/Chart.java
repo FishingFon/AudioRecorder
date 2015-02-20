@@ -21,6 +21,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.animation.Animation;
 
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -39,6 +40,7 @@ import com.github.mikephil.charting.utils.MarkerView;
 import com.github.mikephil.charting.utils.SelInfo;
 import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.ValueFormatter;
+import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.ValueAnimator;
 import com.nineoldandroids.animation.ValueAnimator.AnimatorUpdateListener;
@@ -1173,6 +1175,7 @@ public abstract class Chart<T extends ChartData<? extends DataSet<? extends Entr
         mAnimatorX.start();
     }
 
+
     /**
      * Animates the rendering of the chart on the y-axis with the specified
      * animation time. If animate(...) is called, no further calling of
@@ -1180,7 +1183,7 @@ public abstract class Chart<T extends ChartData<? extends DataSet<? extends Entr
      * 
      * @param durationMillis
      */
-    public void animateY(int durationMillis) {
+    public void animateYFromZero(int durationMillis) {
 
         mAnimatorY = ObjectAnimator.ofFloat(this, "phaseY", 0f, 1f);
         mAnimatorY.setDuration(durationMillis);
@@ -1188,12 +1191,35 @@ public abstract class Chart<T extends ChartData<? extends DataSet<? extends Entr
         mAnimatorY.start();
     }
 
+    public ObjectAnimator getAnimateYToZeroAnimator(int durationMillis) {
+
+        mAnimatorY = ObjectAnimator.ofFloat(this, "phaseY", 1f, 0f);
+        mAnimatorY.setDuration(durationMillis);
+        mAnimatorY.addUpdateListener(this);
+        //mAnimatorY.start();
+        return mAnimatorY;
+
+    }
+    public ObjectAnimator getAnimateYFromZeroAnimator(int durationMillis) {
+
+        mAnimatorY = ObjectAnimator.ofFloat(this, "phaseY", 0f, 1f);
+        mAnimatorY.setDuration(durationMillis);
+        mAnimatorY.addUpdateListener(this);
+        //mAnimatorY.start();
+        return mAnimatorY;
+
+    }
     public void animateYToZero(int durationMillis) {
 
         mAnimatorY = ObjectAnimator.ofFloat(this, "phaseY", 1f, 0f);
         mAnimatorY.setDuration(durationMillis);
         mAnimatorY.addUpdateListener(this);
         mAnimatorY.start();
+
+    }
+
+    public ObjectAnimator getAnimatorY(){
+        return mAnimatorY;
     }
 
     @Override

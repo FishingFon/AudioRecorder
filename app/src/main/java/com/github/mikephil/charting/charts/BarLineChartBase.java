@@ -1315,6 +1315,7 @@ public abstract class BarLineChartBase<T extends BarLineScatterCandleData<? exte
      */
     public void setDragEnabled(boolean enabled) {
         this.mDragEnabled = enabled;
+
     }
 
     /**

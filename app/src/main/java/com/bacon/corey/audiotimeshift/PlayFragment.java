@@ -15,6 +15,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ScaleDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.DropBoxManager;
@@ -55,11 +56,17 @@ import com.github.mikephil.charting.data.DataSet;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.OnChartGestureListener;
+import com.github.mikephil.charting.interfaces.OnChartValueSelectedListener;
 import com.github.mikephil.charting.interfaces.OnDrawListener;
+import com.github.mikephil.charting.listener.BarLineChartTouchListener;
 import com.github.mikephil.charting.utils.LimitLine;
+import com.github.mikephil.charting.utils.PointD;
 import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.XLabels;
 import com.github.mikephil.charting.utils.YLabels;
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.ObjectAnimator;
 
 
 import libs.CircleButton;
@@ -102,6 +109,8 @@ public class PlayFragment extends Fragment {
     int xValsPerSecond = 10;
     int deviceWidthPX;
     boolean updateGraphCenter = true;
+    LineDataSet lineDataSet;
+    boolean chartAnimationFinished = false;
 
     // TODO: Rename and change types and number of parameters
     public static PlayFragment newInstance() {
@@ -207,7 +216,6 @@ public class PlayFragment extends Fragment {
         playButton.setTag(clicked);
 
         buildAudioWaveData(recording);
-
         //buildChartData();
         //TODO add delete function
 
@@ -216,10 +224,14 @@ public class PlayFragment extends Fragment {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //mLineChart.centerViewPort(0,0);
+                Log.i("scaleX", Float.toString(mLineChart.getScaleX()));
 
 
+                //Toast.makeText(getActivity(),Double.toString(x2.x), Toast.LENGTH_LONG).show();
 
-            mLineChart.animateYToZero(500);
+
+            //mLineChart.animateYToZero(500);
                 /*
                 RecordingOptionsCalculator.deleteFile(recording.getFile());
                 recordingsList.remove(currentFilePosition);
@@ -411,6 +423,7 @@ public class PlayFragment extends Fragment {
         }
     };
 
+
     public void setVolume (float volume){
         try {
             playService.getMediaPlayer().setVolume(volume, volume);
@@ -429,6 +442,45 @@ public class PlayFragment extends Fragment {
         final Handler handler = new Handler();
         final boolean[] threadCompleted = new boolean[1];
         threadCompleted[0] = false;
+        final ObjectAnimator mObjectAnimator = mLineChart.getAnimateYToZeroAnimator(300);
+        //buildAudioWaveDataAsynTask(recordingsList.get(position));
+
+        setChartAnimationFinished(false);
+
+        mObjectAnimator.addListener(new Animator.AnimatorListener() {
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+                setChartAnimationFinished(false);
+                //updateGraphCenter = false;
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                //lineDataSet.setColor(mainActivity.getListAdapter().getRowColor(position));
+                setChartAnimationFinished(true);
+                //mLineChart.centerViewPort(0,0);
+                buildAudioWaveDataAsynTask(recordingsList.get(position));
+
+
+                ///updateGraphCenter = true;
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                setChartAnimationFinished(true);
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        mObjectAnimator.start();
+
         (new Thread(){
             @Override
             public void run(){
@@ -437,6 +489,8 @@ public class PlayFragment extends Fragment {
                 final int fromColor = mainActivity.getListAdapter().getRowColor(position-1);
                 final int toColor = mainActivity.getListAdapter().getRowColor(position);
                 final int midWayBlended = mainActivity.blendColors(toColor, fromColor, 0.05f*11);
+
+
                 for(i = 0.01f; i<1f; i = i + 0.05f){
                     final float j = i;
 
@@ -497,7 +551,6 @@ public class PlayFragment extends Fragment {
                 }
             }
         }).start();
-
         seekbar.setMax((int) recordingsList.get(position).getAudioLengthInSeconds());
         maxPlaybackLength.setText(recordingsList.get(position).getAudioLengthInHMSFormat());
         currentColor = mainActivity.getListAdapter().getRowColor(position);
@@ -511,6 +564,7 @@ public class PlayFragment extends Fragment {
         final Handler handler = new Handler();
         final int fromColor = mainActivity.getListAdapter().getRowColor(position+1);
         final int toColor = mainActivity.getListAdapter().getRowColor(position);
+        //mLineChart.animateYToZero(600);
 
         (new Thread(){
             @Override
@@ -695,10 +749,9 @@ public class PlayFragment extends Fragment {
                                     public void run() {
                                         try {
                                             if (currentPosition != lastTime && !mainActivity.getSlidingUpPanelLayout().getPanelSlideListener().isPanelSliding()) {
-                                                seekbar.setProgress(currentPosition);
                                                 Log.i("PlayFragment", "SeekUpdation called - Time updated");
-                                                currentPlaybackPosition.setText(getAudioLengthInHMSFormat(currentPosition));
 
+                                                updatePlaybackUIElements(currentPosition);
                                             }
 
 
@@ -781,41 +834,41 @@ public class PlayFragment extends Fragment {
         public void onFragmentInteraction(Uri uri);
     }
 
-    public void togglePlayPauseButton(boolean setPlay){
-        final boolean mSetPlaying = setPlay;
-    if(mSetPlaying && (Boolean) playButton.getTag() == false || !mSetPlaying && (Boolean) playButton.getTag() == true) {
-        start.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-
-                boolean test = (Boolean) playButton.getTag();
-                if (mSetPlaying && (Boolean) playButton.getTag() == false) {
-                    playButtonShowing = true;
-                    playButton.setImageResource(R.drawable.ic_play);
-                    playButton.setTag(new Boolean(true));
-
-                } else if (!mSetPlaying && (Boolean) playButton.getTag() == true) {
-                    playButtonShowing = false;
-                    playButton.setImageResource(R.drawable.ic_pause);
-                    playButton.setTag(new Boolean(false));
+    public void togglePlayPauseButton(boolean setPaused){
+        final boolean mSetPlaying = setPaused;
+        if(mSetPlaying && (Boolean) playButton.getTag() == false || !mSetPlaying && (Boolean) playButton.getTag() == true) {
+            start.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
 
                 }
 
-                playButton.startAnimation(end);
-            }
+                @Override
+                public void onAnimationEnd(Animation animation) {
 
-            @Override
-            public void onAnimationRepeat(Animation animation) {
+                    boolean test = (Boolean) playButton.getTag();
+                    if (mSetPlaying && (Boolean) playButton.getTag() == false) {
+                        playButtonShowing = true;
+                        playButton.setImageResource(R.drawable.ic_play);
+                        playButton.setTag(new Boolean(true));
 
-            }
-        });
-        playButton.startAnimation(start);
-    }
+                    } else if (!mSetPlaying && (Boolean) playButton.getTag() == true) {
+                        playButtonShowing = false;
+                        playButton.setImageResource(R.drawable.ic_pause);
+                        playButton.setTag(new Boolean(false));
+
+                    }
+
+                    playButton.startAnimation(end);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            });
+            playButton.startAnimation(start);
+        }
     }
     public void setUpChart(ArrayList <Float> audioData){
         mLineChart.centerViewPort(0,0);
@@ -836,6 +889,7 @@ public class PlayFragment extends Fragment {
         mLineChart.getYLabels().setLabelCount(0);
         mLineChart.getYLabels().setDrawTopYLabelEntry(false);
         mLineChart.setStartAtZero(false);
+        //mLineChart.setScaleMinima(); TODO
 
         mLineChart.setHighlightEnabled(false);
         mLineChart.setHighlightIndicatorEnabled(false);
@@ -852,20 +906,99 @@ public class PlayFragment extends Fragment {
        // mLineChart.zoom(calculateOptimalZoomLevel(), 1f, mLineChart.getMeasuredWidth() / 2, mLineChart.getMeasuredHeight() / 2);
 
 
-        mLineChart.setOnTouchListener(new View.OnTouchListener() {
+
+
+
+        mLineChart.setOnChartGestureListener(new OnChartGestureListener() {
+            boolean chartBeenDragged = false;
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                    updateGraphCenter = false;
-                    return false;
+            public void onChartTouched(MotionEvent me) {
+                try {
+                    if (playService.getMediaPlayer().isPlaying()){
+                        playService.getMediaPlayer().pause();
+                        if ((Boolean) playButton.getTag() == false) {
+                            playButtonShowing = true;
+                            playButton.setImageResource(R.drawable.ic_play);
+                            playButton.setTag(new Boolean(true));
+
+                        }
+                    }
+                    isChartBeingTouched = true;
+                }catch (Exception e){
+                    Log.e("error: ", "" + e);
                 }
-                else if() {
-                    updateGraphCenter = true;
-                    return true;
+            }
+
+            @Override
+            public void onChartTouchReleased(MotionEvent me) {
+                if(chartBeenDragged ){
+                    try {
+                        Log.i("gesture touch", "drag released");
+                        chartBeenDragged = false;
+                        double x = getXAtCenter();
+
+                        playService.getMediaPlayer().seekTo((int) Math.round(x * 1000 / xValsPerSecond));
+                        if(!playService.getMediaPlayer().isPlaying()){
+                            playService.getMediaPlayer().start();
+
+                            if ((Boolean) playButton.getTag() == true) {
+                                playButtonShowing = false;
+                                playButton.setImageResource(R.drawable.ic_pause);
+                                playButton.setTag(new Boolean(false));
+
+                            }
+                        }
+                        isChartBeingTouched = false;
+                    }catch (Exception e){
+                        Log.e("error: ", "" + e);
+                    }
                 }
-                //return true;
+
+            }
+
+            @Override
+            public void onChartZoomed(MotionEvent me) {
+
+            }
+
+            @Override
+            public void onChartLongPressed(MotionEvent me) {
+
+            }
+
+            @Override
+            public void onChartDoubleTapped(MotionEvent me) {
+
+            }
+
+            @Override
+            public void onChartSingleTapped(MotionEvent me) {
+                Log.i("gesture", "tapped");
+            }
+
+            @Override
+            public void onChartDragged(MotionEvent me) {
+                chartBeenDragged = true;
+                Log.i("gesture", "dragged");
+                double x = getXAtCenter();
+                int progress = seekbar.getProgress();
+                int xValRounded = (int) Math.floor(x / xValsPerSecond);
+
+                if(xValRounded != progress){
+                    updatePlaybackUIElements(xValRounded);
+
+                }
+
+            }
+
+            @Override
+            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
+                Log.i("gesture", "flinged");
+
             }
         });
+
+        //mLineChart.setOnTouchListener();
         //mLineChart.getXLabels().setSpaceBetweenLabels(10);
         mLineChart.invalidate();
 
@@ -889,7 +1022,7 @@ public class PlayFragment extends Fragment {
 
             j++;
         }
-        LineDataSet lineDataSet = new LineDataSet(vals, "Random  Numbers");
+        lineDataSet = new LineDataSet(vals, "Random  Numbers");
         lineDataSet.setLineWidth(1.5f);
         lineDataSet.setCircleColor(Color.RED);
         lineDataSet.setCircleSize(4);
@@ -904,24 +1037,23 @@ public class PlayFragment extends Fragment {
 
         LineData data = new LineData(xVals, dataSets);
         mLineChart.setData(data);
+        //mLineChart.animateYFromZero(600);
 
 
-        //graphDatums = mLineChart.getVisibleDomainCount();
-
-        //mLineChart.animateY(3000); // Animate chart
         mLineChart.zoom(calculateOptimalZoomLevel(), 1f, mLineChart.getMeasuredWidth() / 2, mLineChart.getMeasuredHeight() / 2);
 
         Log.i("status", "chart data set");
     }
 
-    public ArrayList <Integer> buildAudioWaveData(Recording recording){
+    public ArrayList <Float> buildAudioWaveData(Recording recording){
         final Recording finalRecording = recording;
         final Handler handler = new Handler();
+        final ArrayList<Float> dataSeries = new ArrayList<Float>();
+
         (new Thread(){
             @Override
             public void run(){
                 File recFile = finalRecording.getFile();
-                final ArrayList dataSeries = new ArrayList<Float>();
 
                 try {
                     InputStream bis = new BufferedInputStream(new FileInputStream(recFile));
@@ -967,106 +1099,26 @@ public class PlayFragment extends Fragment {
 
 
                         }
-                        int g = 0 + 1;
 
                     }
                     else if(channels == 2){
-                        while(fileSamplesRemaining > samplesPerDatum * 2){
+                        for(long h = 0; h < numberOfDatumsToCompute && fileSamplesRemaining > samplesPerDatum; h++){
                             for(int i = 0; i < numberCountsPerCycle; i++) {
-                                short temp = Short.reverseBytes(dis.readShort());
-                                max = Math.max(max, Math.abs(temp));
-                                fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle;
-                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 2 - 2);
-                            }
 
-                            dataSeries.add((int)max);
-                            max = 0;
-                            //dis.skipBytes(samplesPerDatum);
-
-                            //fileSamplesRemaining -= samplesPerDatum;
-                        }
-                    }
-                    Log.i("status", "finished building data");
-                    handler.post(new Runnable() {
-                        public void run() {
-                            setUpChart(dataSeries);
-
-                        }
-                    });
-                }catch(Exception e){
-                    Log.e("graph error", "error: " + e);
-                    handler.post(new Runnable() {
-                        public void run() {
-                            setUpChart(dataSeries);
-
-                        }
-                    });
-                }
-            }
-        }).start();
-
-
-        return null;
-    }
-    public ArrayList <Integer> buildAudioWaveDataNull(Recording recording){
-        final Recording finalRecording = recording;
-        final Handler handler = new Handler();
-        (new Thread(){
-            @Override
-            public void run(){
-                File recFile = finalRecording.getFile();
-                final ArrayList dataSeries = new ArrayList<Float>();
-
-                try {
-                    InputStream bis = new BufferedInputStream(new FileInputStream(recFile));
-                    DataInputStream dis = new DataInputStream(bis);
-                    RandomAccessFile ra = new RandomAccessFile(recFile, "rw");
-
-                    long sampleRate = finalRecording.getSampleRate(ra);
-                    int channels = finalRecording.getNumChannels(ra);
-                    int bits = finalRecording.getBitsPerSample(ra);
-                    int samplesPerDatum = (int)sampleRate / 10; // One sample for every 1000 ms.
-                    long fileLengthInBytes = recFile.length() - 44;
-                    long fileSamplesRemaining = fileLengthInBytes /( (bits / 8) * channels)  ; // 16 bit wave file = 2 bytes per sample.
-                    float max = 0;
-                    int avgCount = 0;
-                    int numberCountsPerCycle = 100;
-                    int bytesCounted = 0;
-                    if(channels == 1){
-                        while(fileSamplesRemaining > samplesPerDatum){
-                            for(int i = 0; i < numberCountsPerCycle; i++) {
                                 short tempShort = Short.reverseBytes(dis.readShort());
                                 float temp = normaliseDatum(tempShort);
 
                                 max = Math.max(max, Math.abs(temp));
 
-                                fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle;
-                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle);
-                                bytesCounted += samplesPerDatum / numberCountsPerCycle;
+                                cycleBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+                                totalBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+
+                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 4 - 2);
                             }
-
-
+                            cycleBytesSkipped = 0;
+                            fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle * 2;
 
                             dataSeries.add(max);
-                            //dataSeries.add(avgCount / 5);
-                           // avgCount = 0;
-                            max = 0;
-                            //dis.skipBytes(samplesPerDatum);
-                            //fileSamplesRemaining -= samplesPerDatum;
-
-
-                        }
-                    }
-                    else if(channels == 2){
-                        while(fileSamplesRemaining > samplesPerDatum * 2){
-                            for(int i = 0; i < numberCountsPerCycle; i++) {
-                                short temp = Short.reverseBytes(dis.readShort());
-                                max = Math.max(max, Math.abs(temp));
-                                fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle;
-                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 2);
-                            }
-
-                            dataSeries.add((int)max);
                             max = 0;
                             //dis.skipBytes(samplesPerDatum);
 
@@ -1076,19 +1128,22 @@ public class PlayFragment extends Fragment {
                     Log.i("status", "finished building data");
                     handler.post(new Runnable() {
                         public void run() {
-                             setUpChart(dataSeries);
-
+                            Log.i("status", "setting chart data");
+                            setUpChart(dataSeries);
                         }
                     });
-                }catch(Exception e){
+                }catch(IOException e){
+                    Log.e("exception", "error: "  + e);
+                    setUpChart(dataSeries);
 
                 }
             }
         }).start();
 
 
-        return null;
+        return dataSeries;
     }
+
     public float calculateOptimalZoomLevel(){
         int graphWidthPX = mLineChart.getMeasuredWidth();
         //int graphHeightPX = mLineChart.getMeasuredHeight();
@@ -1193,5 +1248,237 @@ public class PlayFragment extends Fragment {
 
         return result;
     }
+    public double getXAtCenter(){
+        PointD p =  mLineChart.getValuesByTouchPoint(mLineChart.getMeasuredWidth() / 2, mLineChart.getMeasuredHeight() / 2);
+
+        return p.x;
+    }
+    private void updatePlaybackUIElements(int currentPlaybackTime){
+
+        seekbar.setProgress(currentPlaybackTime);
+        currentPlaybackPosition.setText(getAudioLengthInHMSFormat(currentPlaybackTime));
+    }
+
+    private void setChartAnimationFinished(boolean trueOrFalse){
+        chartAnimationFinished = trueOrFalse;
+    }
+
+    public ArrayList <Float> buildAudioWaveDataAsynTask(Recording recording){
+
+        class calculateAudioWaveData extends AsyncTask<Recording, Integer, ArrayList<Float>>{
+            Recording finalRecording;
+
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Float> floats) {
+                ArrayList<Float> floatss = floats;
+                setUpChart(floats);
+                mLineChart.animateYFromZero(500);
+                super.onPostExecute(floats);
+            }
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                super.onProgressUpdate(values);
+            }
+
+            @Override
+            protected ArrayList<Float> doInBackground(Recording... params) {
+                finalRecording = params[0];
+                File recFile = finalRecording.getFile();
+                final ArrayList<Float> mDataSeries = new ArrayList<Float>();
+
+
+                try {
+                    InputStream bis = new BufferedInputStream(new FileInputStream(recFile));
+                    DataInputStream dis = new DataInputStream(bis);
+                    RandomAccessFile ra = new RandomAccessFile(recFile, "rw");
+
+                    long sampleRate = finalRecording.getSampleRate(ra);
+                    int channels = finalRecording.getNumChannels(ra);
+                    int bits = finalRecording.getBitsPerSample(ra);
+                    long audioLength = finalRecording.getAudioLengthInSeconds();
+
+                    long numberOfDatumsToCompute = audioLength * xValsPerSecond; // One sample for every 1000 ms.
+                    long fileLengthInBytes = recFile.length() - 44;
+                    long fileSamplesRemaining = fileLengthInBytes / ((bits / 8) * channels); // 16 bit wave file = 2 bytes per sample.
+                    float max = 0;
+                    int numberCountsPerCycle = 50;
+                    int samplesPerDatum = (int) sampleRate / xValsPerSecond;
+                    long totalBytesSkipped = 0;
+                    int cycleBytesSkipped = 0;
+                    dis.skipBytes(44);
+
+                    if (channels == 1) {
+                        for (long j = 0; j < numberOfDatumsToCompute && fileSamplesRemaining > samplesPerDatum; j++) {
+                            for (int i = 0; i < numberCountsPerCycle; i++) {
+                                short tempShort = Short.reverseBytes(dis.readShort());
+                                float temp = normaliseDatum(tempShort);
+                                max = Math.max(max, Math.abs(temp));
+
+
+                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 2 - 2);
+                                cycleBytesSkipped += samplesPerDatum / numberCountsPerCycle * 2 - 2;
+                                totalBytesSkipped += samplesPerDatum / numberCountsPerCycle * 2 - 2;
+                            }
+                            cycleBytesSkipped = 0;
+                            fileSamplesRemaining -= samplesPerDatum;
+
+                            mDataSeries.add(max);
+                            //dataSeries.add(avgCount / 5);
+                            // avgCount = 0;
+                            max = 0;
+                            //dis.skipBytes(samplesPerDatum);
+                            //fileSamplesRemaining -= samplesPerDatum;
+
+
+                        }
+
+                    }
+                    else if(channels == 2){
+                        for(long h = 0; h < numberOfDatumsToCompute && fileSamplesRemaining > samplesPerDatum; h++){
+                            for(int i = 0; i < numberCountsPerCycle; i++) {
+
+                                short tempShort = Short.reverseBytes(dis.readShort());
+                                float temp = normaliseDatum(tempShort);
+
+                                max = Math.max(max, Math.abs(temp));
+
+                                cycleBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+                                totalBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+
+                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 4 - 2);
+                            }
+                            cycleBytesSkipped = 0;
+                            fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle * 2;
+
+                            mDataSeries.add(max);
+                            max = 0;
+                            //dis.skipBytes(samplesPerDatum);
+
+                            //fileSamplesRemaining -= samplesPerDatum;
+                        }
+                    }
+
+                    Log.i("status", "setting chart data");
+                }catch (Exception e){
+                    Log.e("error", "error: " + e);
+                    e.printStackTrace();
+
+                }
+                return mDataSeries;
+
+            }
+        }
+
+        new calculateAudioWaveData().execute(recording);
+
+
+    return null;
+
+    }
+
+    public void calculateDatasetSubset(float scale, final float visibleRange, float graphCenterXVal, final float overflowRange){
+        final Recording finalRecording = recording;
+        final Handler handler = new Handler();
+        final ArrayList<Float> dataSeries = new ArrayList<Float>();
+
+        (new Thread(){
+            @Override
+            public void run(){
+                File recFile = finalRecording.getFile();
+
+                try {
+                    InputStream bis = new BufferedInputStream(new FileInputStream(recFile));
+                    DataInputStream dis = new DataInputStream(bis);
+                    RandomAccessFile ra = new RandomAccessFile(recFile, "rw");
+
+                    long sampleRate = finalRecording.getSampleRate(ra);
+                    int channels = finalRecording.getNumChannels(ra);
+                    int bits = finalRecording.getBitsPerSample(ra);
+                    long audioLength = finalRecording.getAudioLengthInSeconds();
+
+                    long numberOfDatumsToCompute = audioLength * xValsPerSecond; // One sample for every 1000 ms.
+                    long fileLengthInBytes = recFile.length() - 44;
+                    long fileSamplesRemaining = fileLengthInBytes /( (bits / 8) * channels)  ; // 16 bit wave file = 2 bytes per sample.
+                    float max = 0;
+                    int numberCountsPerCycle = 50;
+                    int samplesPerDatum = (int) sampleRate / xValsPerSecond;
+                    long totalBytesSkipped = 0;
+                     int cycleBytesSkipped = 0;
+                 // dis.skipBytes(44 + (visibleRange * sampleRate * 2 * channels - sampleRate * 2 * overflowRange * visibleRange));
+
+                    if(channels == 1){
+                        for(long j = 0; j < numberOfDatumsToCompute && fileSamplesRemaining > samplesPerDatum; j++){
+                            for(int i = 0; i < numberCountsPerCycle; i++) {
+                                short tempShort = Short.reverseBytes(dis.readShort());
+                                float temp = normaliseDatum(tempShort);
+                                max = Math.max(max, Math.abs(temp));
+
+
+                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 2 - 2);
+                                cycleBytesSkipped += samplesPerDatum / numberCountsPerCycle * 2 - 2;
+                                totalBytesSkipped += samplesPerDatum / numberCountsPerCycle * 2 - 2;
+                            }
+                            cycleBytesSkipped = 0;
+                            fileSamplesRemaining -= samplesPerDatum;
+
+                            dataSeries.add(max);
+                            //dataSeries.add(avgCount / 5);
+                            // avgCount = 0;
+                            max = 0;
+                            //dis.skipBytes(samplesPerDatum);
+                            //fileSamplesRemaining -= samplesPerDatum;
+
+
+                        }
+
+                    }
+                    else if(channels == 2){
+                        for(long h = 0; h < numberOfDatumsToCompute && fileSamplesRemaining > samplesPerDatum; h++){
+                            for(int i = 0; i < numberCountsPerCycle; i++) {
+
+                                short tempShort = Short.reverseBytes(dis.readShort());
+                                float temp = normaliseDatum(tempShort);
+
+                                max = Math.max(max, Math.abs(temp));
+
+                                cycleBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+                                totalBytesSkipped += samplesPerDatum / numberCountsPerCycle * 4 - 2;
+
+                                dis.skipBytes(samplesPerDatum / numberCountsPerCycle * 4 - 2);
+                            }
+                            cycleBytesSkipped = 0;
+                            fileSamplesRemaining -= samplesPerDatum / numberCountsPerCycle * 2;
+
+                            dataSeries.add(max);
+                            max = 0;
+                            //dis.skipBytes(samplesPerDatum);
+
+                            //fileSamplesRemaining -= samplesPerDatum;
+                        }
+                    }
+                    Log.i("status", "finished building data");
+                    handler.post(new Runnable() {
+                        public void run() {
+                            Log.i("status", "setting chart data");
+                            setUpChart(dataSeries);
+                        }
+                    });
+                }catch(IOException e){
+                    Log.e("exception", "error: "  + e);
+                    setUpChart(dataSeries);
+
+                }
+            }
+        }).start();
+
+    }
+
 }
 
