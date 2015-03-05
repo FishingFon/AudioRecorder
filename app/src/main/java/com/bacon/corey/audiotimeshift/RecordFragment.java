@@ -3,6 +3,7 @@ package com.bacon.corey.audiotimeshift;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,10 +18,29 @@ import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import org.achartengine.*;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.OnChartGestureListener;
+
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.BarChart;
+import org.achartengine.chart.PointStyle;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.model.XYSeries;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -33,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import libs.CircleButton;
@@ -59,7 +80,8 @@ public class RecordFragment extends Fragment {
     RecordService recordService;
     boolean serviceBound = false;
     Intent recordIntent;
-    final int GRAPH_UPDATION_TIME_INTERVAL = 200;
+    final int GRAPH_UPDATE_TIME_INTERVAL = 200;
+    View view;
 
     public static RecordFragment newInstance() {
         RecordFragment fragment = new RecordFragment();
@@ -85,14 +107,16 @@ public class RecordFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View view = inflater.inflate(R.layout.fragment_record, container, false);
+        view = inflater.inflate(R.layout.fragment_record, container, false);
 
+        setupChart();
         final CircleButton startButton = (CircleButton) view.findViewById(R.id.startRecordingButton);
         final CircleButton waveToggleButton = (CircleButton) view.findViewById(R.id.waveToggleButton_recording);
         final CircleButton cancelButton = (CircleButton) view.findViewById(R.id.cancelButton);
 
         cancelButton.getDrawable().setColorFilter(getResources().getColor(R.color.recordDefaultColor), PorterDuff.Mode.MULTIPLY); // TODO
         waveToggleButton.getDrawable().setColorFilter(getResources().getColor(R.color.recordDefaultColor), PorterDuff.Mode.MULTIPLY); // TODO
+
 
         final AlphaAnimation start = new AlphaAnimation(1.0f, 0.5f);
         start.setDuration(100);
@@ -393,23 +417,117 @@ public class RecordFragment extends Fragment {
         (new Thread(){
             @Override
             public void run() {
+                int i = 0;
+
                 while (true) {
+                    final float h = i;
                     try {
                         if (serviceBound) {
-                            Log.i("graphAmplitude", Float.toString(recordService.getAudioRecorder().getMaxAmplitudeFloat()));
+                            //Log.i("graphAmplitude", Float.toString(recordService.getAudioRecorder().getMaxAmplitudeFloat()));
+                            handler.post(new Runnable() {
+                                public void run() {
+                                    try {
+                                        visitsSeries.add(h, recordService.getAudioRecorder().getMaxAmplitude());
+
+
+                                        multiRenderer.setXAxisMin(h - 50);
+                                        multiRenderer.setXAxisMax(h);
+
+                                        mChart.repaint();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            });
                         }
                     }catch (Exception e){
 
                     }
-                    try{ sleep(GRAPH_UPDATION_TIME_INTERVAL); }
+                    try{ sleep(GRAPH_UPDATE_TIME_INTERVAL); }
                     catch(InterruptedException e){
                         e.printStackTrace();
 
                     }
+                    i++;
                 }
             }
         }).start();
     }
+
+
+    // AChartEngine
+    private GraphicalView mChart;
+    private XYSeries visitsSeries ;
+    private XYMultipleSeriesDataset dataset;
+    private XYSeriesRenderer visitsRenderer;
+    private XYMultipleSeriesRenderer multiRenderer;
+
+    private void setupChart(){
+
+        // Creating an  XYSeries for Visits
+        visitsSeries = new XYSeries("Unique Visitors");
+
+
+
+
+
+
+
+        // Creating a dataset to hold each series
+        dataset = new XYMultipleSeriesDataset();
+        // Adding Visits Series to the dataset
+        dataset.addSeries(visitsSeries);
+
+        // Creating XYSeriesRenderer to customize visitsSeries
+        visitsRenderer = new XYSeriesRenderer();
+        visitsRenderer.setColor(Color.RED);
+        //visitsRenderer.setPointStyle(PointStyle.CIRCLE);
+
+        visitsRenderer.setFillPoints(true);
+        visitsRenderer.setDisplayBoundingPoints(false);
+        visitsRenderer.setLineWidth(4);
+        XYSeriesRenderer.FillOutsideLine fill = (new XYSeriesRenderer.FillOutsideLine(XYSeriesRenderer.FillOutsideLine.Type.BOUNDS_ALL));
+        fill.setColor(Color.RED);
+        //visitsRenderer.addFillOutsideLine(fill);
+        visitsRenderer.setDisplayChartValues(false);
+
+        // Creating a XYMultipleSeriesRenderer to customize the whole chart
+        multiRenderer = new XYMultipleSeriesRenderer();
+
+        multiRenderer.setZoomButtonsVisible(false);
+        multiRenderer.setExternalZoomEnabled(true);
+        multiRenderer.setChartTitle("");
+        multiRenderer.setXTitle("");
+        multiRenderer.setYTitle("");
+        multiRenderer.setXLabels(0);
+        multiRenderer.setMarginsColor(Color.argb(1, 0, 0 ,0));
+        multiRenderer.setXAxisMin(0);
+        multiRenderer.setXAxisMax(10);
+        multiRenderer.setMargins(new int[]{0,0,0,0});
+        multiRenderer.setShowLegend(false);
+        multiRenderer.setYAxisMin(0);
+        multiRenderer.setYAxisMax(37000);
+        multiRenderer.setPanEnabled(true, false);
+        //multiRenderer.setShowGrid(true);
+        //multiRenderer.setGridColor(Color.GRAY);
+        multiRenderer.setZoomEnabled(true, false);
+
+        multiRenderer.setBarSpacing(2);
+
+        // Adding visitsRenderer to multipleRenderer
+        // Note: The order of adding dataseries to dataset and renderers to multipleRenderer
+        // should be same
+        multiRenderer.addSeriesRenderer(visitsRenderer);
+
+        // Getting a reference to LinearLayout of the MainActivity Layout
+        FrameLayout chartContainer = (FrameLayout) view.findViewById(R.id.chartViewContainer);
+
+        mChart = (GraphicalView) ChartFactory.getCubeLineChartView(getActivity().getBaseContext(), dataset, multiRenderer, 0.5f);
+        // Adding the Line Chart to the LinearLayout
+        chartContainer.addView(mChart);
     }
+
+}
 
 

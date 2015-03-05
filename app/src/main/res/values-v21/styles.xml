@@ -2,7 +2,7 @@
 <resources>
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorControlHighlight">@color/grayFeedback</item>
-
+      <!--  <item name="android:windowTranslucentNavigation">true</item> -->
     </style>
 
 

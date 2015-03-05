@@ -883,12 +883,12 @@ public class PlayFragment extends Fragment {
         //mLineChart.setDrawXLabels(false);
         mLineChart.setPinchZoom(false);
         mLineChart.setBackgroundColor(Color.WHITE);
-        mLineChart.setGridColor(Color.GRAY);
+        mLineChart.setGridColor(Color.TRANSPARENT);
         mLineChart.setDrawVerticalGrid(false);
         mLineChart.setDrawGridBackground(false);
         mLineChart.getYLabels().setLabelCount(0);
         mLineChart.getYLabels().setDrawTopYLabelEntry(false);
-        mLineChart.setStartAtZero(false);
+        mLineChart.setStartAtZero(true);
         //mLineChart.setScaleMinima(); TODO
 
         mLineChart.setHighlightEnabled(false);
@@ -1031,12 +1031,14 @@ public class PlayFragment extends Fragment {
         lineDataSet.setColor(mainActivity.getListAdapter().getRowColor(currentFilePosition));
         lineDataSet.setDrawCircles(false);
         lineDataSet.setDrawCubic(true);
+        lineDataSet.setDrawFilled(true); // TODO add option for changing filled state
 
         ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
         dataSets.add(lineDataSet);
 
         LineData data = new LineData(xVals, dataSets);
         mLineChart.setData(data);
+
         //mLineChart.animateYFromZero(600);
 
 
