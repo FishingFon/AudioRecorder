@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.0.2"
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         applicationId "com.bacon.corey.audiotimeshift"
@@ -29,7 +29,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.0'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.android.support:support-v4:21.0.0'
-    compile files('libs/achartengine-1.1.0.jar')
+    compile files('libs/achartengine-1.2.0.jar')
+    //compile 'org.achartengine:achartengine:1.2.0'
 
     // compile files('C:/Users/Corey/.AndroidStudioBeta/Projects/AudioTimeShift/libraries/mpandroidchartlibrary-1-7-4.jar')
 }
